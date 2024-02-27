@@ -1,10 +1,21 @@
 {
   "group-list": [
-    "default"
+    "default",
+    "ui",
+    "map"
   ],
   "collision-matrix": [
     [
       true
+    ],
+    [
+      false,
+      false
+    ],
+    [
+      false,
+      false,
+      false
     ]
   ],
   "excluded-modules": [
@@ -16,7 +27,7 @@
   ],
   "preview-port": 7456,
   "design-resolution-width": 720,
-  "design-resolution-height": 1560,
+  "design-resolution-height": 1280,
   "fit-width": true,
   "fit-height": false,
   "use-project-simulator-setting": false,
@@ -36,5 +47,6 @@
     "audience": {
       "enable": false
     }
-  }
+  },
+  "start-scene": "83831072-df0d-469e-8c88-62872b964f56"
 }

@@ -5,59 +5,71 @@
       "main": true,
       "url": "app://editor/index.html",
       "windowType": "dockable",
-      "x": 92,
-      "y": 0,
-      "width": 1284,
-      "height": 951,
+      "x": -8,
+      "y": -8,
+      "width": 1552,
+      "height": 832,
       "layout": {
         "type": "dock-h",
         "children": [
           {
-            "width": 204.22500610351562,
-            "height": 833,
-            "type": "panel",
-            "active": 0,
-            "children": [
-              "hierarchy"
-            ]
-          },
-          {
-            "width": 205.22500610351562,
-            "height": 833,
-            "type": "panel",
-            "active": 0,
-            "children": [
-              "assets"
-            ]
-          },
-          {
-            "width": 346.38751220703125,
-            "height": 833,
-            "type": "panel",
-            "active": 0,
-            "children": [
-              "scene"
-            ]
-          },
-          {
-            "width": 505.5625,
-            "height": 833,
+            "width": 467.3000183105469,
+            "height": 712.1000366210938,
             "type": "dock-v",
             "children": [
               {
-                "width": 505.5625,
-                "height": 561.4125366210938,
+                "width": 467.3000183105469,
+                "height": 299.0375061035156,
                 "type": "panel",
-                "active": 2,
+                "active": 0,
                 "children": [
-                  "inspector",
-                  "cocos-services",
-                  "node-library"
+                  "hierarchy"
                 ]
               },
               {
-                "width": 505.5625,
-                "height": 268.5874938964844,
+                "width": 467.3000183105469,
+                "height": 410.0625,
+                "type": "panel",
+                "active": 0,
+                "children": [
+                  "assets"
+                ]
+              }
+            ]
+          },
+          {
+            "width": 758.5,
+            "height": 712.1000366210938,
+            "type": "dock-v",
+            "children": [
+              {
+                "width": 758.5,
+                "height": 410.625,
+                "type": "dock-h",
+                "children": [
+                  {
+                    "width": 491.32501220703125,
+                    "height": 410.625,
+                    "type": "panel",
+                    "active": 0,
+                    "children": [
+                      "scene"
+                    ]
+                  },
+                  {
+                    "width": 264.1750183105469,
+                    "height": 410.625,
+                    "type": "panel",
+                    "active": 0,
+                    "children": [
+                      "node-library"
+                    ]
+                  }
+                ]
+              },
+              {
+                "width": 758.5,
+                "height": 298.4624938964844,
                 "type": "panel",
                 "active": 0,
                 "children": [
@@ -67,6 +79,16 @@
                 ]
               }
             ]
+          },
+          {
+            "width": 304.20001220703125,
+            "height": 712.1000366210938,
+            "type": "panel",
+            "active": 0,
+            "children": [
+              "inspector",
+              "cocos-services"
+            ]
           }
         ]
       },
@@ -74,14 +96,16 @@
         "hierarchy",
         "assets",
         "scene",
-        "inspector",
-        "cocos-services",
         "node-library",
         "console",
         "timeline",
-        "game-window"
+        "game-window",
+        "inspector",
+        "cocos-services"
       ]
-    }
+    },
+    "window-1709024032525": {},
+    "window-1709026874802": {}
   },
   "panels": {
     "project-settings": {
@@ -95,6 +119,12 @@
       "y": 128,
       "width": 600,
       "height": 564
+    },
+    "im-plugin": {
+      "x": 260,
+      "y": 28,
+      "width": 1016,
+      "height": 739
     }
   },
   "panelLabelWidth": {}
