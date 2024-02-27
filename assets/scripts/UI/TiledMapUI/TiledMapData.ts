@@ -58,7 +58,27 @@ export class TiledMapData {
     findPath(sX: number, sY: number, eX: number, eY: number) {
         let astar = new AStar(this.row, this.col, false)
         let path = astar.findPath(sX, sY, eX, eY, this.barrier)
-        console.log(path)
+        this.drawPath(path)
+    }
+
+    drawPath(path: [number, number][]) {
+        if (!path.length) return
+        let node = this.tiledmap.node
+        let lineNode = node.getChildByName("lineNode") || new cc.Node("lineNode")
+        if (!lineNode.parent) lineNode.parent = node
+
+        let graphics = lineNode.getComponent(cc.Graphics) || lineNode.addComponent(cc.Graphics)
+        graphics.clear()
+        graphics.strokeColor = cc.Color.GREEN
+        graphics.lineWidth = 5
+        let vec2 = null
+        vec2 = this.calculateTiledToPixel(path[0][0], path[0][1])
+        graphics.moveTo(vec2.x, vec2.y)
+        path.forEach(one => {
+            vec2 = this.calculateTiledToPixel(one[0], one[1])
+            graphics.lineTo(vec2.x, vec2.y)
+        });
+        graphics.stroke()
     }
 
     setBarrier() {
