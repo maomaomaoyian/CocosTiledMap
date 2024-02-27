@@ -1,4 +1,6 @@
-const { ccclass, property } = cc._decorator;
+import { AStar } from "../road/AStar";
+
+const { ccclass } = cc._decorator;
 
 @ccclass
 export class TiledMapData {
@@ -34,6 +36,8 @@ export class TiledMapData {
     heightHalf: number = 0;
     /** 地形对象 */
     tiledmap: cc.TiledMap = null!;
+    /** 地形障碍 */
+    barrier: Set<number> = new Set()
 
     init(tiledmapNode: cc.Node) {
         this.tiledmap = tiledmapNode.getComponent(cc.TiledMap)
@@ -48,6 +52,30 @@ export class TiledMapData {
         this.height = this.tiledmap.node.height
         this.widthHalf = this.width / 2
         this.heightHalf = this.height / 2
+        this.setBarrier()
+    }
+
+    findPath(sX: number, sY: number, eX: number, eY: number) {
+        let astar = new AStar(this.row, this.col, false)
+        let path = astar.findPath(sX, sY, eX, eY, this.barrier)
+        console.log(path)
+    }
+
+    setBarrier() {
+        for (let x = 0; x < this.row; x++) {
+            for (let y = 0; y < this.col; y++) {
+                let isBarrier = this.isBarrier(x, y)
+                isBarrier && this.barrier.add(this.tileToGID(x, y))
+            }
+        }
+        console.log(this.barrier)
+    }
+
+    isBarrier(tiledX: number, tiledY: number): boolean {
+        let gid = this.tileToGID(tiledX, tiledY)
+        if (this.tiledmap.getLayer("barrier") && this.tiledmap.getLayer("barrier").getTiles()[gid] > 0) return true
+        if (this.tiledmap.getLayer("floor") && this.tiledmap.getLayer("floor").getTiles()[gid] === 0) return true
+        return false
     }
 
     calculatePixelToTile(gamePos: cc.Vec3): cc.Vec3 {
@@ -88,6 +116,40 @@ export class TiledMapData {
         pos.x = TileGridSize.width * this.tiledWidth - this.widthHalf - this.tiledWidthHalf
         pos.y = TileGridSize.height * this.tiledHeight - this.heightHalf - this.tiledHeightHalf
         return pos
+    }
+
+    isInView(node: cc.Node): boolean {
+        let camera = cc.find("Canvas").getChildByName("Main Camera").getComponent(cc.Camera)
+        let worldPos = node.convertToWorldSpaceAR(cc.Vec3.ZERO)
+        let viewArea = camera.getWorldToScreenPoint(worldPos)
+        return (viewArea.x <= cc.winSize.width && worldPos.x >= 0) && (viewArea.y <= cc.winSize.height && worldPos.y >= 0)
+    }
+
+    /** GID既是下标也是渲染深度 */
+    tileToGID(tiledX: number, tiledY: number) {
+        return tiledY * this.row + tiledX
+    }
+
+    GIDToTild(gid: number) {
+        return cc.v3(gid % this.row, gid / this.row)
+    }
+
+    getView(tiledX: number, tiledY: number, R: number): cc.Vec2[] {
+        let start = cc.v3(tiledX - R, tiledY - R)
+        let len = R * 2 + 1
+        let arr = []
+        for (let y = 0; y < len; y++) {
+            for (let x = 0; x < len; x++) {
+                let tile = cc.v3(start.x + x, start.y + y)
+                if (this.isOutIndex(tile.x, tile.y)) continue
+                arr.push(tile)
+            }
+        }
+        return arr
+    }
+
+    isOutIndex(tiledX: number, tiledY: number) {
+        return tiledX < 0 || tiledY < 0 || tiledX >= this.row || tiledY >= this.col
     }
 }
 window["TiledMapData"] = TiledMapData

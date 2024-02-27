@@ -1,7 +1,7 @@
-import { Vec3Util } from "../../../resources/UI/TiledMapUI/utils/Vec3Util";
+import { Vec3Util } from "../utils/Vec3Util";
 import { TiledMapData } from "./TiledMapData";
 
-const { ccclass, property } = cc._decorator;
+const { ccclass } = cc._decorator;
 
 /** 精度 */
 const Accuracy = 0.01;

@@ -1,7 +1,7 @@
 import { TiledMapControl } from "./TiledMapControl";
 import { TiledMapData } from "./TiledMapData";
 
-const { ccclass, property } = cc._decorator;
+const { ccclass } = cc._decorator;
 @ccclass
 export default class TiledMapUI extends cc.Component {
     private n_tiledMap: cc.Node
