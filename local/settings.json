@@ -1,7 +1,7 @@
 {
   "use-global-engine-setting": false,
-  "use-default-js-engine": false,
-  "js-engine-path": "C:\\Users\\pc\\CocosTiledMap\\cocos\\2.4.8\\engine",
+  "use-default-js-engine": true,
+  "js-engine-path": "E:\\cocosProject\\CocosTiledMap\\cocos\\2.4.8\\engine",
   "use-default-cpp-engine": true,
   "cpp-engine-path": ""
 }
