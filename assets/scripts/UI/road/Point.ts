@@ -30,7 +30,7 @@ export class Point {
 }
 
 export class APoint extends Point {
-    private _g: number
+    private _g: number = 0
     private _h: number
     private _f: number
     private _parent: APoint
