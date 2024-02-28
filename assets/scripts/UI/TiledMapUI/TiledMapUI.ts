@@ -61,6 +61,7 @@ export default class TiledMapUI extends cc.Component {
         let path = game.map_data_ins.findPath(sX, sY, eX, eY)
         let moveClz = new game.action_move(path, this.n_center, speed)
         moveClz.run()
+        this.onBind()
     }
 
     updateTouchLab(pos: cc.Vec3) {
