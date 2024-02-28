@@ -1,6 +1,8 @@
-import { Vec3Util } from "../utils/Vec3Util";
-import { TiledMapData } from "./TiledMapData";
-
+import { game } from "../../Game";
+/**
+ * @author panda
+ * 2024/02/29
+ */
 const { ccclass } = cc._decorator;
 
 /** 精度 */
@@ -61,20 +63,22 @@ export class TiledMapControl extends cc.Component {
         var mapSize = this.tiledmap.node.getContentSize()
         this.width = mapSize.width + Map_Dilatation_Width;
         this.height = mapSize.height + Map_Dilatation_Height;
-        console.log(`地图宽${this.width},地图高${this.height}`);
         this.addEvent();
         this.onSingleTouch = (clickPos: cc.Vec3) => {
-            let tile = TiledMapData.instance.calculatePixelToTile(clickPos)
-            console.error(tile.x, tile.y)
-            let tileCenter = TiledMapData.instance.calculateTiledToPixel(tile.x, tile.y)
-            console.error(tileCenter.x, tileCenter.y)
+            let tile = game.map_data_ins.pixelToTile(clickPos)
+            let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
+            window["Game"].tiledMapUI.updateTouchLab(tileCenter)
         }
     }
 
-    canvasCenterToMap() {
+    canvasCenterToMap(): cc.Vec3 {
         let canvas = cc.find("Canvas")
-        let worldPos = canvas.convertToWorldSpaceAR(cc.v2())
+        let worldPos = canvas.convertToWorldSpaceAR(cc.v3())
         return this.node.convertToNodeSpaceAR(worldPos)
+    }
+
+    setTarget(node: cc.Node) {
+        this.target = node
     }
 
     setMapByTarget(pos: cc.Vec3) {
@@ -84,12 +88,13 @@ export class TiledMapControl extends cc.Component {
         this.node!.position = pos;
     }
 
+    private recordLastPos: cc.Vec3
     lateUpdate(dt: number) {
         if (this.target && this.target.isValid) {
             this.follow_position.x = -this.target.position.x;
             this.follow_position.y = -this.target.position.y;
             var pos = this.checkPos(this.follow_position);
-            this.node.position = Vec3Util.lerp(this.node.position, pos, 0.5);
+            this.node.position = game.util_vec3.lerp(this.node.position, pos, 0.5);
         }
 
         if (this.inertia) {
@@ -106,6 +111,61 @@ export class TiledMapControl extends cc.Component {
         if (this.isMapMove) {
             this.dealPos();
         }
+
+        let canvasCenterPos = this.canvasCenterToMap()
+        if (!this.recordLastPos || !this.recordLastPos.fuzzyEquals(canvasCenterPos, 5)) {
+            this.recordLastPos = canvasCenterPos
+            let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
+            let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
+            this.calcView(tile.x, tile.y)
+            window["Game"].tiledMapUI.updateCenterLab(tileCenter)
+        }
+
+    }
+
+    private tileLabel: Map<string, cc.Node>
+    private lightTileLabel: Map<string, cc.Node>
+
+    private justShowView() {
+        do {
+            let one = this.lightTileLabel.entries().next()?.value
+            if (!one) continue
+            let key = one[0]
+            let value = one[1]
+            if (!key || !value) continue
+            this.lightTileLabel.delete(key)
+            value.active = false
+        } while (this.lightTileLabel.size > 0);
+    }
+
+    private calcView(tileX: number, tileY: number): cc.Vec2[] {
+        if (!this.tileLabel) this.tileLabel = new Map()
+        if (!this.lightTileLabel) this.lightTileLabel = new Map()
+
+        this.justShowView()
+
+        let viewData = game.map_data_ins.getView(tileX, tileY, 2)
+        viewData.forEach(tile => {
+            let name = `${tile.x}_${tile.y}`
+            if (!this.tileLabel.has(name)) {
+                let pos = game.map_data_ins.tileToPixel(tile.x, tile.y)
+                let node = new cc.Node(name)
+                let label = node.addComponent(cc.Label)
+                label.string = `${name} (${pos.x},${pos.y})`
+                label.fontSize = 15
+                label.verticalAlign = cc.Label.VerticalAlign.CENTER
+                node.color = cc.Color.BLUE
+                node.parent = this.node
+                node.setPosition(pos)
+                this.tileLabel.set(name, node)
+                this.lightTileLabel.set(name, node)
+            }
+            else {
+                this.tileLabel.get(name).active = true
+                this.lightTileLabel.set(name, this.tileLabel.get(name))
+            }
+        });
+        return viewData
     }
 
     private addEvent(): void {

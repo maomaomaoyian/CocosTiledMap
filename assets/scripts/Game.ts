@@ -1,24 +1,39 @@
+import { EntityMove } from "./UI/TiledMapUI/Move";
 import { TiledMapControl } from "./UI/TiledMapUI/TiledMapControl";
 import { TiledMapData } from "./UI/TiledMapUI/TiledMapData";
 import TiledMapUI from "./UI/TiledMapUI/TiledMapUI";
+import { AStar } from "./UI/road/AStar";
+import { APoint } from "./UI/road/Point";
+import { PriorityQueue } from "./UI/utils/PriorityQueue";
+import { Vec3Util } from "./UI/utils/Vec3Util";
 
-const { ccclass, property } = cc._decorator;
-
+const { ccclass } = cc._decorator;
+/**
+ * @author panda
+ * 2024/02/29
+ * 注意：地图很大以1000x1000网格为例，加载tmx文件时同时加载tmx依赖的美术资源。这样减少卡顿
+ */
 @ccclass
 export default class Game extends cc.Component {
 
-    public tiledMapData: TiledMapData
+    private static _instance: Game;
+    static get instance() {
+        if (!this._instance) {
+            this._instance = new Game();
+        }
+        return this._instance;
+    }
 
-    public tiledMapControl: TiledMapControl
+    public tiledMapUI: TiledMapUI
 
     protected onLoad(): void {
-        // 以1000x1000地图来讲，在加载预设时候同时加载地图依赖资源会比只加载地图节约一半入场时间。
+        window["Game"] = this
         this.loadRes("UI/TiledMapUI/TiledMapUI", cc.Prefab, (err: Error, res: cc.Prefab) => {
             if (!err) {
                 let ui = cc.instantiate(res) as cc.Node
                 this.node.parent.addChild(ui)
                 ui.setPosition(0, 0)
-                ui.addComponent(TiledMapUI)
+                this.tiledMapUI = ui.addComponent(TiledMapUI)
             }
         })
     }
@@ -28,4 +43,17 @@ export default class Game extends cc.Component {
             callback(err, res)
         })
     }
+}
+
+export module game {
+    export const PRINT = false
+    export const util_vec3 = Vec3Util
+    export const util_queue = PriorityQueue
+    export const road_astar = AStar
+    export const road_apoint = APoint
+    export type road_apoint = APoint
+    export const map_control = TiledMapControl
+    export type map_control = TiledMapControl
+    export const action_move = EntityMove
+    export const map_data_ins = TiledMapData.instance
 }

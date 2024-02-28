@@ -1,3 +1,7 @@
+/**
+ * @author panda
+ * 2024/02/29
+ */
 export class Point {
     private _x: number
     private _y: number

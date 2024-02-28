@@ -1,18 +1,19 @@
-import { TiledMapData } from "../TiledMapUI/TiledMapData";
-import { PriorityQueue } from "../utils/PriorityQueue";
-import { APoint } from "./Point";
-
+import { game } from "../../Game"
+/**
+ * @author panda
+ * 2024/02/29
+ */
 export class AStar {
-    private openList = new PriorityQueue<APoint>((a: APoint, b: APoint) => a.getF() - b.getF())
-    private openListMap: Map<number, APoint> = new Map()
-    private closeMap: Map<number, APoint> = new Map()
+    private openList = new game.util_queue<game.road_apoint>((a: game.road_apoint, b: game.road_apoint) => a.getF() - b.getF())
+    private openListMap: Map<number, game.road_apoint> = new Map()
+    private closeMap: Map<number, game.road_apoint> = new Map()
     private barrier: Set<number> = new Set()
 
     private mapWidth: number
     private mapHeight: number
     private x8: boolean
 
-    private dest: APoint
+    private dest: game.road_apoint
 
     private static readonly step = 10
 
@@ -23,8 +24,8 @@ export class AStar {
     }
 
     findPath(sX: number, sY: number, eX: number, eY: number, barrier: Set<number>): [number, number][] {
-        const start = new APoint(sX, sY)
-        const end = new APoint(eX, eY)
+        const start = new game.road_apoint(sX, sY)
+        const end = new game.road_apoint(eX, eY)
         this.barrier = barrier
         this.openList.clear()
         this.openListMap.clear()
@@ -32,23 +33,23 @@ export class AStar {
 
         let path: [number, number][] = new Array()
         if (start.equals(end)) {
-            console.error("不能设置目的地为起点")
+            game.PRINT && console.error("不能设置目的地为起点")
             return path
         }
         const startGID = this.getGID(start)
         const endGID = this.getGID(end)
         if (this.barrier.has(startGID) || this.barrier.has(endGID)) {
-            console.error("起点与终点都不能是障碍")
+            game.PRINT && console.error("起点与终点都不能是障碍")
             return path
         }
 
         if (this.isOutIndex(start) || this.isOutIndex(end)) {
-            console.error("起点与终点都不能在地形之外")
+            game.PRINT && console.error("起点与终点都不能在地形之外")
             return path
         }
 
         this.openListpush(start)
-        let cur: APoint
+        let cur: game.road_apoint
         do {
             cur = this.openListPeek()
             const curGID = this.getGID(cur)
@@ -77,7 +78,7 @@ export class AStar {
 
         } while (this.openList.size() !== 0);
 
-        let temp: APoint
+        let temp: game.road_apoint
         if (this.closeMap.has(endGID)) {
             temp = cur
             path.push([temp.getX(), temp.getY()])
@@ -91,28 +92,28 @@ export class AStar {
             path.reverse()
         }
         else {
-            console.error("没有发生意外，但没有找到路径")
+            game.PRINT && console.error("没有发生意外，但没有找到路径")
         }
 
         return path
     }
 
-    openListPeek(): APoint {
+    openListPeek(): game.road_apoint {
         return this.openList.peek()
     }
 
-    openListpush(ele: APoint) {
+    openListpush(ele: game.road_apoint) {
         const gid = this.getGID(ele)
         this.openList.push(ele)
         this.openListMap.set(gid, ele)
     }
 
-    openListHas(ele: APoint): boolean {
+    openListHas(ele: game.road_apoint): boolean {
         const gid = this.getGID(ele)
         return this.openListMap.has(gid)
     }
 
-    openListDelete(ele: APoint) {
+    openListDelete(ele: game.road_apoint) {
         let idx = this.openListEleIndex(ele)
         if (idx === -1) return
         const gid = this.getGID(ele)
@@ -120,7 +121,7 @@ export class AStar {
         this.openListMap.delete(gid)
     }
 
-    openListEleIndex(ele: APoint): number {
+    openListEleIndex(ele: game.road_apoint): number {
         const data = this.openList.getData()
         for (let index = 0; index < data.length; index++) {
             const one = data[index];
@@ -131,32 +132,32 @@ export class AStar {
         return -1
     }
 
-    getGID(ele: APoint) {
-        return TiledMapData.instance.tileToGID(ele.getX(), ele.getY())
+    getGID(ele: game.road_apoint) {
+        return game.map_data_ins.tileToGID(ele.getX(), ele.getY())
     }
 
-    isBarrier(ele: APoint): boolean {
+    isBarrier(ele: game.road_apoint): boolean {
         if (ele.equals(this.dest)) return false
         const gid = this.getGID(ele)
         return this.barrier.has(gid)
     }
 
-    isOutIndex(ele: APoint): boolean {
-        return TiledMapData.instance.isOutIndex(ele.getX(), ele.getY())
+    isOutIndex(ele: game.road_apoint): boolean {
+        return game.map_data_ins.isOutIndex(ele.getX(), ele.getY())
     }
 
-    calcH(cur: APoint, end: APoint): number {
+    calcH(cur: game.road_apoint, end: game.road_apoint): number {
         let temp = Math.abs(cur.getX() - end.getX()) + Math.abs(cur.getY() - end.getY())
         return temp * AStar.step
     }
 
-    getNeighbors(ele: APoint): APoint[] {
+    getNeighbors(ele: game.road_apoint): game.road_apoint[] {
         let arr = []
         const x = ele.getX()
         const y = ele.getY()
-        let point: APoint
+        let point: game.road_apoint
         if (x + 1 < this.mapWidth) {
-            point = new APoint(x + 1, y)
+            point = new game.road_apoint(x + 1, y)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
                 arr.push(point)
@@ -164,7 +165,7 @@ export class AStar {
         }
 
         if (x - 1 >= 0) {
-            point = new APoint(x - 1, y)
+            point = new game.road_apoint(x - 1, y)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
                 arr.push(point)
@@ -172,7 +173,7 @@ export class AStar {
         }
 
         if (y + 1 < this.mapHeight) {
-            point = new APoint(x, y + 1)
+            point = new game.road_apoint(x, y + 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
                 arr.push(point)
@@ -180,7 +181,7 @@ export class AStar {
         }
 
         if (y - 1 >= 0) {
-            point = new APoint(x, y - 1)
+            point = new game.road_apoint(x, y - 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
                 arr.push(point)
@@ -190,7 +191,7 @@ export class AStar {
         if (!this.x8) return arr
 
         if (x + 1 < this.mapWidth && y + 1 < this.mapHeight) {
-            point = new APoint(x + 1, y + 1)
+            point = new game.road_apoint(x + 1, y + 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
                 arr.push(point)
@@ -198,7 +199,7 @@ export class AStar {
         }
 
         if (x - 1 >= 0 && y - 1 >= 0) {
-            point = new APoint(x - 1, y - 1)
+            point = new game.road_apoint(x - 1, y - 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
                 arr.push(point)
@@ -206,7 +207,7 @@ export class AStar {
         }
 
         if (x - 1 >= 0 && y + 1 < this.mapHeight) {
-            point = new APoint(x - 1, y + 1)
+            point = new game.road_apoint(x - 1, y + 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
                 arr.push(point)
@@ -214,7 +215,7 @@ export class AStar {
         }
 
         if (x + 1 < this.mapWidth && y - 1 >= 0) {
-            point = new APoint(x + 1, y - 1)
+            point = new game.road_apoint(x + 1, y - 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
                 arr.push(point)
