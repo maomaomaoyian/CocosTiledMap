@@ -9,18 +9,18 @@ export class AStar {
     private closeMap: Map<number, game.road_apoint> = new Map()
     private barrier: Set<number> = new Set()
 
-    private mapWidth: number
-    private mapHeight: number
+    private row: number
+    private col: number
     private x8: boolean
 
     private dest: game.road_apoint
 
     private static readonly step = 10
 
-    constructor(width: number, height: number, x8: boolean) {
+    constructor(row: number, col: number, x8: boolean) {
         this.x8 = x8
-        this.mapWidth = width
-        this.mapHeight = height
+        this.row = row
+        this.col = col
     }
 
     findPath(sX: number, sY: number, eX: number, eY: number, barrier: Set<number>): [number, number][] {
@@ -133,7 +133,7 @@ export class AStar {
     }
 
     getGID(ele: game.road_apoint) {
-        return game.map_data_ins.tileToGID(ele.getX(), ele.getY())
+        return game.tileToGID(this.row, this.col, ele.getX(), ele.getY())
     }
 
     isBarrier(ele: game.road_apoint): boolean {
@@ -143,7 +143,7 @@ export class AStar {
     }
 
     isOutIndex(ele: game.road_apoint): boolean {
-        return game.map_data_ins.isOutIndex(ele.getX(), ele.getY())
+        return game.isOutIndex(this.row, this.col, ele.getX(), ele.getY())
     }
 
     calcH(cur: game.road_apoint, end: game.road_apoint): number {
@@ -156,7 +156,7 @@ export class AStar {
         const x = ele.getX()
         const y = ele.getY()
         let point: game.road_apoint
-        if (x + 1 < this.mapWidth) {
+        if (x + 1 < this.row) {
             point = new game.road_apoint(x + 1, y)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
@@ -172,7 +172,7 @@ export class AStar {
             }
         }
 
-        if (y + 1 < this.mapHeight) {
+        if (y + 1 < this.col) {
             point = new game.road_apoint(x, y + 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
@@ -190,7 +190,7 @@ export class AStar {
 
         if (!this.x8) return arr
 
-        if (x + 1 < this.mapWidth && y + 1 < this.mapHeight) {
+        if (x + 1 < this.row && y + 1 < this.col) {
             point = new game.road_apoint(x + 1, y + 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
@@ -206,7 +206,7 @@ export class AStar {
             }
         }
 
-        if (x - 1 >= 0 && y + 1 < this.mapHeight) {
+        if (x - 1 >= 0 && y + 1 < this.col) {
             point = new game.road_apoint(x - 1, y + 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)
@@ -214,7 +214,7 @@ export class AStar {
             }
         }
 
-        if (x + 1 < this.mapWidth && y - 1 >= 0) {
+        if (x + 1 < this.row && y - 1 >= 0) {
             point = new game.road_apoint(x + 1, y - 1)
             if (!this.isBarrier(point)) {
                 point.setParent(ele)

@@ -56,4 +56,37 @@ export module game {
     export type map_control = TiledMapControl
     export const action_move = EntityMove
     export const map_data_ins = TiledMapData.instance
+
+    export const roomX = 30
+    export const roomY = 60
+    export const presetHeight = 1000
+    export const presetWidth = 1000
+
+    export function isInView(node: cc.Node): boolean {
+        let camera = cc
+            .find("Canvas")
+            .getChildByName("Main Camera")
+            .getComponent(cc.Camera);
+        let worldPos = node.convertToWorldSpaceAR(cc.Vec3.ZERO);
+        let viewArea = camera.getWorldToScreenPoint(worldPos);
+        return (
+            viewArea.x <= cc.winSize.width &&
+            worldPos.x >= 0 &&
+            viewArea.y <= cc.winSize.height &&
+            worldPos.y >= 0
+        );
+    }
+
+    /** GID既是下标也是渲染深度 */
+    export function tileToGID(row: number, col: number, tiledX: number, tiledY: number) {
+        return tiledY * row + tiledX;
+    }
+
+    export function GIDToTild(row: number, col: number, gid: number) {
+        return cc.v3(gid % row, gid / row);
+    }
+
+    export function isOutIndex(row: number, col: number, tiledX: number, tiledY: number) {
+        return tiledX < 0 || tiledY < 0 || tiledX >= row || tiledY >= col;
+    }
 }

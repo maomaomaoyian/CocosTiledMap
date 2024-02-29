@@ -93,14 +93,14 @@ export class TiledMapData {
         for (let x = 0; x < this.row; x++) {
             for (let y = 0; y < this.col; y++) {
                 let isBarrier = this.isBarrier(x, y);
-                isBarrier && this.barrier.add(this.tileToGID(x, y));
+                isBarrier && this.barrier.add(game.tileToGID(this.row, this.col, x, y));
             }
         }
         game.PRINT && console.log("障碍录入完毕")
     }
 
     isBarrier(tiledX: number, tiledY: number): boolean {
-        let gid = this.tileToGID(tiledX, tiledY);
+        let gid = game.tileToGID(this.row, this.col, tiledX, tiledY);
         if (
             this.tiledmap.getLayer("barrier") &&
             this.tiledmap.getLayer("barrier").getTiles()[gid] > 0
@@ -164,29 +164,7 @@ export class TiledMapData {
         return pos;
     }
 
-    isInView(node: cc.Node): boolean {
-        let camera = cc
-            .find("Canvas")
-            .getChildByName("Main Camera")
-            .getComponent(cc.Camera);
-        let worldPos = node.convertToWorldSpaceAR(cc.Vec3.ZERO);
-        let viewArea = camera.getWorldToScreenPoint(worldPos);
-        return (
-            viewArea.x <= cc.winSize.width &&
-            worldPos.x >= 0 &&
-            viewArea.y <= cc.winSize.height &&
-            worldPos.y >= 0
-        );
-    }
 
-    /** GID既是下标也是渲染深度 */
-    tileToGID(tiledX: number, tiledY: number) {
-        return tiledY * this.row + tiledX;
-    }
-
-    GIDToTild(gid: number) {
-        return cc.v3(gid % this.row, gid / this.row);
-    }
 
     getSquareView(viewArea: cc.Size): cc.Vec3[] {
         const CanvasCenter = window["Game"].tiledMapUI.comp_control.canvasCenterToMap()
@@ -249,7 +227,7 @@ export class TiledMapData {
             let yMax = Math.max(startTile.y, endTile.y)
             for (let y = yMax; y >= yMin; y--) {
                 let tile = cc.v3(x, y)
-                if (this.isOutIndex(tile.x, tile.y)) continue;
+                if (game.isOutIndex(this.row, this.col, tile.x, tile.y)) continue;
                 if ((tile.x === left_up_tile.x && tile.y === left_up_tile.y)
                     || (tile.x === right_up_tile.x && tile.y === right_up_tile.y)
                     || (tile.x === left_down_tile.x && tile.y === left_down_tile.y)
@@ -270,14 +248,12 @@ export class TiledMapData {
         for (let y = 0; y < len; y++) {
             for (let x = 0; x < len; x++) {
                 let tile = cc.v3(start.x + x, start.y + y);
-                if (this.isOutIndex(tile.x, tile.y)) continue;
+                if (game.isOutIndex(this.row, this.col, tile.x, tile.y)) continue;
                 arr.push(tile);
             }
         }
         return arr;
     }
 
-    isOutIndex(tiledX: number, tiledY: number) {
-        return tiledX < 0 || tiledY < 0 || tiledX >= this.row || tiledY >= this.col;
-    }
+
 }
