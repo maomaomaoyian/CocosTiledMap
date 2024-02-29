@@ -164,9 +164,7 @@ export class TiledMapData {
         return pos;
     }
 
-
-
-    getSquareView(viewArea: cc.Size): cc.Vec3[] {
+    getSquareVertices(viewArea: cc.Size): cc.Vec3[] {
         const CanvasCenter = window["Game"].tiledMapUI.comp_control.canvasCenterToMap()
 
         const left_up = cc.v3(CanvasCenter.x - viewArea.width / 2, CanvasCenter.y + viewArea.height / 2)
@@ -175,16 +173,22 @@ export class TiledMapData {
         const right_down = cc.v3(CanvasCenter.x + viewArea.width / 2, CanvasCenter.y - viewArea.height / 2)
 
         const left_up_tile = this.pixelToTile(left_up)
+        left_up_tile.x -= 1
         const right_up_tile = this.pixelToTile(right_up)
+        right_up_tile.y -= 1
         const left_down_tile = this.pixelToTile(left_down)
+        left_down_tile.y += 1
         const right_down_tile = this.pixelToTile(right_down)
+        right_down_tile.x += 1
 
-        let arr = this.getViewBorder(left_up_tile, right_up_tile, left_down_tile, right_down_tile)
-        return arr
+        return [left_up_tile, right_up_tile, left_down_tile, right_down_tile]
     }
 
-    /** 方形视野（视野有效率几乎百分百） */
-    getViewBorder(left_up_tile: cc.Vec3, right_up_tile: cc.Vec3, left_down_tile: cc.Vec3, right_down_tile: cc.Vec3): cc.Vec3[] {
+    getSquareView(vertices: cc.Vec3[]): cc.Vec3[] {
+        let left_up_tile: cc.Vec3 = vertices[0],
+            right_up_tile: cc.Vec3 = vertices[1],
+            left_down_tile: cc.Vec3 = vertices[2],
+            right_down_tile: cc.Vec3 = vertices[3]
 
         let leftBorderTiles: cc.Vec3[] = (() => {
             let arr: cc.Vec3[] = []
@@ -240,7 +244,6 @@ export class TiledMapData {
         return returnArr
     }
 
-    /** 菱形视野（视野有效率只有13%） */
     getDiamondView(tiledX: number, tiledY: number, R: number): cc.Vec3[] {
         let start = cc.v3(tiledX - R, tiledY - R);
         let len = R * 2 + 1;

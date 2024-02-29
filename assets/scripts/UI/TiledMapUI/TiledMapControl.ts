@@ -147,7 +147,8 @@ export class TiledMapControl extends cc.Component {
         if (!this.tileLabel) this.tileLabel = new Map()
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.justShowView()
-        let viewData = game.map_data_ins.getSquareView(cc.size(300, 500))
+        let vertices = game.map_data_ins.getSquareVertices(cc.size(300, 500))
+        let viewData = game.map_data_ins.getSquareView(vertices)
         this.showView(viewData)
         return viewData
     }
