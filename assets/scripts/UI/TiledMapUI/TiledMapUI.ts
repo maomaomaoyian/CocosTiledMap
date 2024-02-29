@@ -17,7 +17,7 @@ export default class TiledMapUI extends cc.Component {
     private l_touch: cc.Label
     private l_center: cc.Label
 
-    private comp_control: game.map_control
+    public comp_control: game.map_control
 
     protected onLoad(): void {
         this.n_tiledMap = cc.find("n_tiledMap", this.node)

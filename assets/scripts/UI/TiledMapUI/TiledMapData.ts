@@ -80,14 +80,14 @@ export class TiledMapData {
         for (let x = 0; x < this.row; x++) {
             for (let y = 0; y < this.col; y++) {
                 let isBarrier = this.isBarrier(x, y);
-                isBarrier && this.barrier.add(this.tileToGID(x, y));
+                isBarrier && this.barrier.add(game.tileToGID(this.row, this.col, x, y));
             }
         }
         game.PRINT && console.log("障碍录入完毕")
     }
 
     isBarrier(tiledX: number, tiledY: number): boolean {
-        let gid = this.tileToGID(tiledX, tiledY);
+        let gid = game.tileToGID(this.row, this.col, tiledX, tiledY);
         if (
             this.tiledmap.getLayer("barrier") &&
             this.tiledmap.getLayer("barrier").getTiles()[gid] > 0
@@ -151,45 +151,99 @@ export class TiledMapData {
         return pos;
     }
 
-    isInView(node: cc.Node): boolean {
-        let camera = cc
-            .find("Canvas")
-            .getChildByName("Main Camera")
-            .getComponent(cc.Camera);
-        let worldPos = node.convertToWorldSpaceAR(cc.Vec3.ZERO);
-        let viewArea = camera.getWorldToScreenPoint(worldPos);
-        return (
-            viewArea.x <= cc.winSize.width &&
-            worldPos.x >= 0 &&
-            viewArea.y <= cc.winSize.height &&
-            worldPos.y >= 0
-        );
+    getSquareVertices(viewArea: cc.Size): cc.Vec3[] {
+        const CanvasCenter = window["Game"].tiledMapUI.comp_control.canvasCenterToMap()
+
+        const left_up = cc.v3(CanvasCenter.x - viewArea.width / 2, CanvasCenter.y + viewArea.height / 2)
+        const right_up = cc.v3(CanvasCenter.x + viewArea.width / 2, CanvasCenter.y + viewArea.height / 2)
+        const left_down = cc.v3(CanvasCenter.x - viewArea.width / 2, CanvasCenter.y - viewArea.height / 2)
+        const right_down = cc.v3(CanvasCenter.x + viewArea.width / 2, CanvasCenter.y - viewArea.height / 2)
+
+        const left_up_tile = this.pixelToTile(left_up)
+        left_up_tile.x -= 1
+        const right_up_tile = this.pixelToTile(right_up)
+        right_up_tile.y -= 1
+        const left_down_tile = this.pixelToTile(left_down)
+        left_down_tile.y += 1
+        const right_down_tile = this.pixelToTile(right_down)
+        right_down_tile.x += 1
+
+        return [left_up_tile, right_up_tile, left_down_tile, right_down_tile]
     }
 
-    /** GID既是下标也是渲染深度 */
-    tileToGID(tiledX: number, tiledY: number) {
-        return tiledY * this.row + tiledX;
+    getSquareView(vertices: cc.Vec3[]): cc.Vec3[] {
+        let left_up_tile: cc.Vec3 = vertices[0],
+            right_up_tile: cc.Vec3 = vertices[1],
+            left_down_tile: cc.Vec3 = vertices[2],
+            right_down_tile: cc.Vec3 = vertices[3]
+
+        let leftBorderTiles: cc.Vec3[] = (() => {
+            let arr: cc.Vec3[] = []
+            let idx = 0
+            let add: boolean = false
+            for (let x = left_up_tile.x; x <= right_down_tile.x; x++) {
+                let y = !add ? left_up_tile.y + idx : right_up_tile.y + idx
+                arr.push(cc.v3(x, y))
+                if (y === right_up_tile.y) {
+                    add = true
+                    idx = 0
+                }
+                idx = add ? idx + 1 : idx - 1
+            }
+            return arr
+        })()
+
+        let rightBorderTiles: cc.Vec3[] = (() => {
+            let arr: cc.Vec3[] = []
+            let idx = 0
+            let add: boolean = true
+            for (let x = left_up_tile.x; x <= right_down_tile.x; x++) {
+                let y = add ? left_up_tile.y + idx : left_down_tile.y + idx
+                arr.push(cc.v3(x, y))
+                if (y === left_down_tile.y) {
+                    add = false
+                    idx = 0
+                }
+                idx = add ? idx + 1 : idx - 1
+            }
+            return arr
+        })()
+
+        let returnArr: cc.Vec3[] = []
+        for (let index = 0; index < leftBorderTiles.length; index++) {
+            let startTile = leftBorderTiles[index]
+            let endTile = rightBorderTiles[index]
+            let x = startTile.x
+            let yMin = Math.min(startTile.y, endTile.y)
+            let yMax = Math.max(startTile.y, endTile.y)
+            for (let y = yMax; y >= yMin; y--) {
+                let tile = cc.v3(x, y)
+                if (game.isOutIndex(this.row, this.col, tile.x, tile.y)) continue;
+                if ((tile.x === left_up_tile.x && tile.y === left_up_tile.y)
+                    || (tile.x === right_up_tile.x && tile.y === right_up_tile.y)
+                    || (tile.x === left_down_tile.x && tile.y === left_down_tile.y)
+                    || (tile.x === right_down_tile.x && tile.y === right_down_tile.y)) {
+                    tile.z = 1
+                }
+                returnArr.push(tile)
+            }
+        }
+        return returnArr
     }
 
-    GIDToTild(gid: number) {
-        return cc.v3(gid % this.row, gid / this.row);
-    }
-
-    getView(tiledX: number, tiledY: number, R: number): cc.Vec2[] {
+    getDiamondView(tiledX: number, tiledY: number, R: number): cc.Vec3[] {
         let start = cc.v3(tiledX - R, tiledY - R);
         let len = R * 2 + 1;
-        let arr = [];
+        let arr: cc.Vec3[] = [];
         for (let y = 0; y < len; y++) {
             for (let x = 0; x < len; x++) {
                 let tile = cc.v3(start.x + x, start.y + y);
-                if (this.isOutIndex(tile.x, tile.y)) continue;
+                if (game.isOutIndex(this.row, this.col, tile.x, tile.y)) continue;
                 arr.push(tile);
             }
         }
         return arr;
     }
 
-    isOutIndex(tiledX: number, tiledY: number) {
-        return tiledX < 0 || tiledY < 0 || tiledX >= this.row || tiledY >= this.col;
-    }
+
 }

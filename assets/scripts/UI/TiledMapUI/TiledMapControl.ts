@@ -53,6 +53,11 @@ export class TiledMapControl extends cc.Component {
     /** --- 拖拽到边缘触发地图移动 --- */
     private isMapMove = true;
 
+    /** --- 视野数据 --- */
+    private recordLastPos: cc.Vec3
+    private tileLabel: Map<string, cc.Node>
+    private lightTileLabel: Map<string, cc.Node>
+
     private getSize(): cc.Size {
         return this.nodeParent.getContentSize();
     }
@@ -88,7 +93,6 @@ export class TiledMapControl extends cc.Component {
         this.node!.position = pos;
     }
 
-    private recordLastPos: cc.Vec3
     lateUpdate(dt: number) {
         if (this.target && this.target.isValid) {
             this.follow_position.x = -this.target.position.x;
@@ -117,14 +121,12 @@ export class TiledMapControl extends cc.Component {
             this.recordLastPos = canvasCenterPos
             let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
             let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
-            this.calcView(tile.x, tile.y)
+            // this.calcDiamondView(tile.x, tile.y)
+            this.calcSquareView()
             window["Game"].tiledMapUI.updateCenterLab(tileCenter)
         }
 
     }
-
-    private tileLabel: Map<string, cc.Node>
-    private lightTileLabel: Map<string, cc.Node>
 
     private justShowView() {
         do {
@@ -138,23 +140,41 @@ export class TiledMapControl extends cc.Component {
         } while (this.lightTileLabel.size > 0);
     }
 
-    private calcView(tileX: number, tileY: number): cc.Vec2[] {
+    private isFirst = true
+    private calcSquareView(): cc.Vec3[] {
+        if (!this.isFirst) return
+        this.isFirst = false
         if (!this.tileLabel) this.tileLabel = new Map()
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
-
         this.justShowView()
+        let vertices = game.map_data_ins.getSquareVertices(cc.size(300, 500))
+        let viewData = game.map_data_ins.getSquareView(vertices)
+        this.showView(viewData)
+        return viewData
+    }
 
-        let viewData = game.map_data_ins.getView(tileX, tileY, 2)
+    private calcDiamondView(tileX: number, tileY: number): cc.Vec3[] {
+        if (!this.tileLabel) this.tileLabel = new Map()
+        if (!this.lightTileLabel) this.lightTileLabel = new Map()
+        this.justShowView()
+        let viewData = game.map_data_ins.getDiamondView(tileX, tileY, 9)
+        this.showView(viewData)
+        return viewData
+    }
+
+    private showView(viewData: cc.Vec3[]) {
         viewData.forEach(tile => {
             let name = `${tile.x}_${tile.y}`
             if (!this.tileLabel.has(name)) {
                 let pos = game.map_data_ins.tileToPixel(tile.x, tile.y)
                 let node = new cc.Node(name)
                 let label = node.addComponent(cc.Label)
-                label.string = `${name} (${pos.x},${pos.y})`
+                // label.string = `${name} (${pos.x},${pos.y})`
+                // label.string = `${game.map_data_ins.tileToGID(tile.x, tile.y)}`
+                label.string = `${name}`
                 label.fontSize = 15
                 label.verticalAlign = cc.Label.VerticalAlign.CENTER
-                node.color = cc.Color.BLUE
+                node.color = tile.z ? cc.Color.RED : cc.Color.BLUE
                 node.parent = this.node
                 node.setPosition(pos)
                 this.tileLabel.set(name, node)
@@ -165,7 +185,6 @@ export class TiledMapControl extends cc.Component {
                 this.lightTileLabel.set(name, this.tileLabel.get(name))
             }
         });
-        return viewData
     }
 
     private addEvent(): void {
