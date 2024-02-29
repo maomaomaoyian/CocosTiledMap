@@ -6,15 +6,15 @@ import { game } from "../../Game";
 const { ccclass } = cc._decorator;
 
 /** 精度 */
-const Accuracy = 0.01;
-/** 惯性触发间隔时间（毫秒） */
-const Inertia_Trigger_Time = 200;
-/** 惯性触发距离*/
-const Inertia_Trigger_Distance = 50;
-/** 地图扩大宽度 */
-const Map_Dilatation_Width = 0;
-/** 地图扩大高度 */
-const Map_Dilatation_Height = 0;
+const ACCURACY = 0.01;
+/** 触发时间间隔（ms） */
+const TIGGER_TIME_INTERVAL = 200;
+/** 触发距离间隔*/
+const TIGGER_DISTANCE_INTERVAL = 50;
+/** 地图冗余宽度 */
+const EXTEND_WIDTH = 0;
+/** 地图冗余高度 */
+const EXTEND_HEIGHT = 0;
 
 const LIMIT_MIN_SCALE: number = 1;
 const LIMIT_MAX_SCALE: number = 2;
@@ -66,8 +66,8 @@ export class TiledMapControl extends cc.Component {
         this.tiledmap = this.node.getComponent(cc.TiledMap)
         this.nodeParent = this.node.parent!;
         var mapSize = this.tiledmap.node.getContentSize()
-        this.width = mapSize.width + Map_Dilatation_Width;
-        this.height = mapSize.height + Map_Dilatation_Height;
+        this.width = mapSize.width + EXTEND_WIDTH;
+        this.height = mapSize.height + EXTEND_HEIGHT;
         this.addEvent();
         this.onSingleTouch = (clickPos: cc.Vec3) => {
             let tile = game.map_data_ins.pixelToTile(clickPos)
@@ -105,7 +105,7 @@ export class TiledMapControl extends cc.Component {
             this.inertiaVector = this.inertiaVector.lerp(cc.Vec3.ZERO, dt * 3)
             this.dir.set(this.inertiaVector);
             this.dealPos();
-            if (this.inertiaVector.fuzzyEquals(cc.Vec3.ZERO, Accuracy)) {
+            if (this.inertiaVector.fuzzyEquals(cc.Vec3.ZERO, ACCURACY)) {
                 this.inertia = false;
                 this.dir.set(cc.Vec3.ZERO);
                 this.inertiaVector.set(cc.Vec3.ZERO);
@@ -254,7 +254,7 @@ export class TiledMapControl extends cc.Component {
             var t = touches[0];
             cc.Vec2.subtract(this.inertiaVector, t.getLocation(), this.inertiaStart);
             var distance = this.inertiaVector.len();
-            if (inertia < Inertia_Trigger_Time && distance > Inertia_Trigger_Distance) {
+            if (inertia < TIGGER_TIME_INTERVAL && distance > TIGGER_DISTANCE_INTERVAL) {
                 this.inertiaVector = this.inertiaVector.normalize();
                 cc.Vec3.multiplyScalar(this.inertiaVector, this.inertiaVector, distance / 5);
                 this.inertia = true;
