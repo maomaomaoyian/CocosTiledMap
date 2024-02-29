@@ -15,31 +15,18 @@ export class TiledMapData {
         return this._instance;
     }
 
-    /** X 轴网格数量 */
     row: number = 0;
-    /** Y 轴网格数量 */
     col: number = 0;
-    /** 网格最大数量 */
     maxCount: number = 0;
-    /** 单个格子宽度 */
     tiledWidth: number = 0;
-    /** 单个格子高度 */
     tiledHeight: number = 0;
-    /** 单个格子一半宽度 */
     tiledWidthHalf: number = 0;
-    /** 单个格子一半高度 */
     tiledHeightHalf: number = 0;
-    /** 地形宽度 */
     width: number = 0;
-    /** 地形高度 */
     height: number = 0;
-    /** 地形一半宽度 */
     widthHalf: number = 0;
-    /** 地形一半高度 */
     heightHalf: number = 0;
-    /** 地形对象 */
     tiledmap: cc.TiledMap = null!;
-    /** 地形障碍 */
     barrier: Set<number> = new Set();
 
     init(tiledmapNode: cc.Node) {

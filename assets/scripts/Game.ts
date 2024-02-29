@@ -5,7 +5,7 @@ import TiledMapUI from "./UI/TiledMapUI/TiledMapUI";
 import { AStar } from "./UI/road/AStar";
 import { APoint } from "./UI/road/Point";
 import { PriorityQueue } from "./UI/utils/PriorityQueue";
-import { Vec3Util } from "./UI/utils/Vec3Util";
+import { VecUtil } from "./UI/utils/VecUtil";
 
 const { ccclass } = cc._decorator;
 /**
@@ -47,7 +47,7 @@ export default class Game extends cc.Component {
 
 export module game {
     export const PRINT = false
-    export const util_vec3 = Vec3Util
+    export const util_vec = VecUtil
     export const util_queue = PriorityQueue
     export const road_astar = AStar
     export const road_apoint = APoint

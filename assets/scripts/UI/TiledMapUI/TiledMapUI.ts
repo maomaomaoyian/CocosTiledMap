@@ -31,6 +31,10 @@ export default class TiledMapUI extends cc.Component {
         this.l_center = cc.find("l_center", this.node).getComponent(cc.Label)
         this.l_touch = cc.find("l_touch", this.node).getComponent(cc.Label)
 
+        this.e_startPos.string = "0,0"
+        this.e_endPos.string = "30,30"
+        this.e_speed.string = "0.05"
+
         this.comp_control = this.n_tiledMap.addComponent(game.map_control)
         game.map_data_ins.init(this.n_tiledMap)
         this.onEvt()
@@ -53,11 +57,11 @@ export default class TiledMapUI extends cc.Component {
     onFindPath() {
         let startArr = this.e_startPos.string.split(",")
         let endArr = this.e_endPos.string.split(",")
-        let sX = Number(startArr[0]) || 0
-        let sY = Number(startArr[1]) || 0
-        let eX = Number(endArr[0]) || 999
-        let eY = Number(endArr[1]) || 999
-        let speed = Number(this.e_speed.string) || 0.05
+        let sX = Number(startArr[0])
+        let sY = Number(startArr[1])
+        let eX = Number(endArr[0])
+        let eY = Number(endArr[1])
+        let speed = Number(this.e_speed.string)
         let path = game.map_data_ins.findPath(sX, sY, eX, eY)
         let moveClz = new game.action_move(path, this.n_center, speed)
         moveClz.run()

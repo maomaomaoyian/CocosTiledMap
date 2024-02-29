@@ -7,9 +7,9 @@ const { ccclass } = cc._decorator;
 
 /** 精度 */
 const Accuracy = 0.01;
-/** 惯性移动触发间隔时间（毫秒） */
+/** 惯性触发间隔时间（毫秒） */
 const Inertia_Trigger_Time = 200;
-/** 惯性移动触发间隔距离（像素）*/
+/** 惯性触发距离*/
 const Inertia_Trigger_Distance = 50;
 /** 地图扩大宽度 */
 const Map_Dilatation_Width = 0;
@@ -94,7 +94,7 @@ export class TiledMapControl extends cc.Component {
             this.follow_position.x = -this.target.position.x;
             this.follow_position.y = -this.target.position.y;
             var pos = this.checkPos(this.follow_position);
-            this.node.position = game.util_vec3.lerp(this.node.position, pos, 0.5);
+            this.node.position = game.util_vec.lerp(this.node.position, pos, 0.5);
         }
 
         if (this.inertia) {

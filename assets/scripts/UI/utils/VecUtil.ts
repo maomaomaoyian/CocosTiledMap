@@ -2,7 +2,7 @@
  * @author panda
  * 2024/02/29
  */
-export class Vec3Util {
+export class VecUtil {
     static equals(pos1: cc.Vec3, pos2: cc.Vec3): boolean {
         if (pos1.x == pos2.x && pos1.y == pos2.y && pos1.z == pos2.z) {
             return true;
