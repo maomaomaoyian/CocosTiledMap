@@ -50,9 +50,6 @@ export class TiledMapControl extends cc.Component {
     private inertiaStart!: cc.Vec2;
     private inertiaVector: cc.Vec3 = new cc.Vec3();
 
-    /** --- 拖拽到边缘触发地图移动 --- */
-    private isMapMove = true;
-
     /** --- 视野数据 --- */
     private recordLastPos: cc.Vec3
     private tileLabel: Map<string, cc.Node>
@@ -110,10 +107,6 @@ export class TiledMapControl extends cc.Component {
                 this.dir.set(cc.Vec3.ZERO);
                 this.inertiaVector.set(cc.Vec3.ZERO);
             }
-        }
-
-        if (this.isMapMove) {
-            this.dealPos();
         }
 
         let canvasCenterPos = this.canvasCenterToMap()
@@ -285,7 +278,6 @@ export class TiledMapControl extends cc.Component {
     reset() {
         this.dir.set(cc.Vec3.ZERO);
         this.isMoving = false;
-        this.isMapMove = false;
     }
 
     getScreenPosToMapPos(event: cc.Event.EventTouch): cc.Vec3 {
