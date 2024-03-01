@@ -10,7 +10,7 @@ const ACCURACY = 0.01;
 /** 触发时间间隔（ms） */
 const TIGGER_TIME_INTERVAL = 200;
 /** 触发距离间隔*/
-const TIGGER_DISTANCE_INTERVAL = 50;
+const TIGGER_DISTANCE_INTERVAL = 10;
 /** 地图冗余宽度 */
 const EXTEND_WIDTH = 0;
 /** 地图冗余高度 */
@@ -99,7 +99,7 @@ export class TiledMapControl extends cc.Component {
         }
 
         if (this.inertia) {
-            this.inertiaVector = this.inertiaVector.lerp(cc.Vec3.ZERO, dt * 3)
+            this.inertiaVector = this.inertiaVector.lerp(cc.Vec3.ZERO, dt * 6)
             this.dir.set(this.inertiaVector);
             this.dealPos();
             if (this.inertiaVector.fuzzyEquals(cc.Vec3.ZERO, ACCURACY)) {
@@ -163,7 +163,9 @@ export class TiledMapControl extends cc.Component {
                 let node = new cc.Node(name)
                 let label = node.addComponent(cc.Label)
                 // label.string = `${name} (${pos.x},${pos.y})`
-                // label.string = `${game.map_data_ins.tileToGID(tile.x, tile.y)}`
+                // const row = game.map_data_ins.row
+                // const col = game.map_data_ins.col
+                // label.string = `${game.tileToGID(row, col, tile.x, tile.y)}`
                 label.string = `${name}`
                 label.fontSize = 15
                 label.verticalAlign = cc.Label.VerticalAlign.CENTER
@@ -230,7 +232,7 @@ export class TiledMapControl extends cc.Component {
             if (this.isMoving || this.canStartMove(touches[0])) {
                 this.isMoving = true;
                 let delta = touches[0].getDelta();
-                delta = delta.multiplyScalar(1 / cc.view.getScaleX());
+                delta = delta.multiplyScalar(LIMIT_MIN_SCALE);
                 this.dir.set(cc.v3(delta.x, delta.y));
                 this.dealPos();
             }
