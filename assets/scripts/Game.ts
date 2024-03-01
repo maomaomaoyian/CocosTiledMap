@@ -10,7 +10,6 @@ import { VecUtil } from "./UI/utils/VecUtil";
 const { ccclass } = cc._decorator;
 /**
  * @author panda
- * 2024/02/29
  * 注意：地图很大以1000x1000网格为例，加载tmx文件时同时加载tmx依赖的美术资源。这样减少卡顿
  */
 @ccclass
@@ -46,7 +45,7 @@ export default class Game extends cc.Component {
 }
 
 export module game {
-    export const PRINT = false
+    export const PRINT = true
     export const util_vec = VecUtil
     export const util_queue = PriorityQueue
     export const road_astar = AStar
@@ -56,11 +55,13 @@ export module game {
     export type map_control = TiledMapControl
     export const action_move = EntityMove
     export const map_data_ins = TiledMapData.instance
+    export const VIEW = cc.winSize
 
     export const roomX = 30
     export const roomY = 60
     export const presetHeight = 1000
     export const presetWidth = 1000
+    export const realTimeOfView = true
 
     export function isInView(node: cc.Node): boolean {
         let camera = cc
@@ -88,5 +89,13 @@ export module game {
 
     export function isOutIndex(row: number, col: number, tiledX: number, tiledY: number) {
         return tiledX < 0 || tiledY < 0 || tiledX >= row || tiledY >= col;
+    }
+
+    export function mergeMaps<t, t1>(map1: Map<t, t1>, map2: Map<t, t1>): Map<t, t1> {
+        const resultMap = new Map(map1);
+        for (const [key, value] of map2) {
+            resultMap.set(key, value);
+        }
+        return resultMap;
     }
 }

@@ -1,5 +1,8 @@
 import { game } from "../../Game"
 
+/**
+ * @author panda
+ */
 export class EntityMove {
     private path: [number, number][]
     private target: cc.Node

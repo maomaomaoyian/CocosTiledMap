@@ -1,6 +1,5 @@
 /**
  * @author panda
- * 2024/02/29
  */
 export class PriorityQueue<T> {
 

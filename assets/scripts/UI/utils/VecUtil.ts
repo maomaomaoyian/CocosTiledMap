@@ -1,6 +1,5 @@
 /**
  * @author panda
- * 2024/02/29
  */
 export class VecUtil {
     static equals(pos1: cc.Vec3, pos2: cc.Vec3): boolean {

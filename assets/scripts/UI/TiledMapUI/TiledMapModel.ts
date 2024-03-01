@@ -1,5 +1,8 @@
 import { game } from "../../Game";
 
+/**
+ * @author panda
+ */
 export class TiledMapModel {
     private static _instance: TiledMapModel;
     static get instance() {

@@ -1,10 +1,9 @@
 import { game } from "../../Game";
-/**
- * @author panda
- * 2024/02/29
- */
 const { ccclass } = cc._decorator;
 
+/**
+ * @author panda
+ */
 @ccclass
 export class TiledMapData {
     private static _instance: TiledMapData;

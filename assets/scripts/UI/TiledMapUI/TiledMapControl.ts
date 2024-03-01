@@ -1,9 +1,14 @@
 import { game } from "../../Game";
+
 /**
  * @author panda
- * 2024/02/29
  */
 const { ccclass } = cc._decorator;
+// 问题：差异地块延时展示（缺）
+// 问题：缺少变动地块的算法（已解决）
+// 问题：缩放状态锁定异常（可以接受）
+// 问题：缩放时寻路定位异常（已解决）
+// 问题：视野永远使用正常尺寸视野，不考虑缩放（已解决）
 
 /** 精度 */
 const ACCURACY = 0.01;
@@ -18,6 +23,11 @@ const EXTEND_HEIGHT = 0;
 
 const LIMIT_MIN_SCALE: number = 1;
 const LIMIT_MAX_SCALE: number = 2;
+
+enum EViewChange {
+    DELETE = 1,
+    ADDITION = 2
+}
 
 @ccclass
 export class TiledMapControl extends cc.Component {
@@ -51,9 +61,15 @@ export class TiledMapControl extends cc.Component {
     private inertiaVector: cc.Vec3 = new cc.Vec3();
 
     /** --- 视野数据 --- */
-    private recordLastPos: cc.Vec3
-    private tileLabel: Map<string, cc.Node>
+    private recordLastTile: cc.Vec3
     private lightTileLabel: Map<string, cc.Node>
+    private viewVertices: cc.Vec3[] = []
+    private viewMapData: Map<number, cc.Vec3> = new Map()
+    private viewDeleteTiles: Map<number, cc.Vec3> = new Map()
+    private viewAdditionTiles: Map<number, cc.Vec3> = new Map()
+    private viewChangeTiles: Map<number, cc.Vec3> = new Map()
+    private previewVertices: cc.Vec3[] = []
+    // private previewMapData: Map<number, cc.Vec3> = new Map()
 
     private getSize(): cc.Size {
         return this.nodeParent.getContentSize();
@@ -84,22 +100,22 @@ export class TiledMapControl extends cc.Component {
     }
 
     setMapByTarget(pos: cc.Vec3) {
-        this.follow_position.x = -pos.x;
-        this.follow_position.y = -pos.y;
+        this.follow_position.x = -pos.x * this.node.scale;
+        this.follow_position.y = -pos.y * this.node.scale;
         var pos = this.checkPos(this.follow_position);
         this.node!.position = pos;
     }
 
     lateUpdate(dt: number) {
         if (this.target && this.target.isValid) {
-            this.follow_position.x = -this.target.position.x;
-            this.follow_position.y = -this.target.position.y;
+            this.follow_position.x = -this.target.position.x * this.node.scale;
+            this.follow_position.y = -this.target.position.y * this.node.scale;
             var pos = this.checkPos(this.follow_position);
             this.node.position = game.util_vec.lerp(this.node.position, pos, 0.5);
         }
 
         if (this.inertia) {
-            this.inertiaVector = this.inertiaVector.lerp(cc.Vec3.ZERO, dt * 6)
+            this.inertiaVector = this.inertiaVector.lerp(cc.Vec3.ZERO, dt * 2)
             this.dir.set(this.inertiaVector);
             this.dealPos();
             if (this.inertiaVector.fuzzyEquals(cc.Vec3.ZERO, ACCURACY)) {
@@ -110,75 +126,114 @@ export class TiledMapControl extends cc.Component {
         }
 
         let canvasCenterPos = this.canvasCenterToMap()
-        if (!this.recordLastPos || !this.recordLastPos.fuzzyEquals(canvasCenterPos, 5)) {
-            this.recordLastPos = canvasCenterPos
-            let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
+        let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
+        if (!this.recordLastTile || !this.recordLastTile.equals(tile)) {
+            this.recordLastTile = tile
             let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
-            // this.calcDiamondView(tile.x, tile.y)
             this.calcSquareView()
             window["Game"].tiledMapUI.updateCenterLab(tileCenter)
         }
-
     }
 
-    private justShowView() {
+    private justShowView(viewData: cc.Vec3[]) {
         do {
-            let one = this.lightTileLabel.entries().next()?.value
-            if (!one) continue
-            let key = one[0]
-            let value = one[1]
-            if (!key || !value) continue
-            this.lightTileLabel.delete(key)
-            value.active = false
-        } while (this.lightTileLabel.size > 0);
+            let tile = viewData.pop()
+            if (!tile) continue
+            let name = `${tile.x}_${tile.y}`
+            this.pushLabel(this.lightTileLabel.get(name))
+            this.lightTileLabel.delete(name)
+        } while (viewData.length > 0);
     }
 
-    private isFirst = true
-    private calcSquareView(): cc.Vec3[] {
-        if (!this.isFirst) return
-        this.isFirst = false
-        if (!this.tileLabel) this.tileLabel = new Map()
+    private labelNodePool: cc.Node[] = []
+    private getLabelNode(tile: cc.Vec3): cc.Node {
+        let node = this.labelNodePool.pop()
+        let label: cc.Label;
+        let name = `${tile.x}_${tile.y}`;
+        if (!node) {
+            node = new cc.Node(name)
+            label = node.addComponent(cc.Label)
+            label.fontSize = 15
+            label.verticalAlign = cc.Label.VerticalAlign.CENTER
+        }
+        else {
+            node.active = true
+            label = node.getComponent(cc.Label)
+        }
+        label.string = `${name}`
+        // label.string = `${name} (${pos.x},${pos.y})`
+        // const row = game.map_data_ins.row
+        // const col = game.map_data_ins.col
+        // label.string = `${game.tileToGID(row, col, tile.x, tile.y)}`
+        node.color = tile.z ? cc.Color.RED : cc.Color.BLUE
+        node.parent = this.node
+        let pos = game.map_data_ins.tileToPixel(tile.x, tile.y)
+        node.setPosition(pos)
+        return node
+    }
+    private pushLabel(node: cc.Node) {
+        node.active = false
+        this.labelNodePool.push(node)
+    }
+
+    private calcSquareView() {
+        if (!game.realTimeOfView && this.viewVertices.length) return
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
-        this.justShowView()
-        let vertices = game.map_data_ins.getSquareVertices(cc.size(300, 500))
+        this.recordView()
+        this.recordPreview()
+        this.scheduleShowView()
+        // this.unschedule(this.scheduleShowView)
+        // this.scheduleOnce(this.scheduleShowView, 0.04)
+    }
+
+    private recordView() {
+        let vertices = game.map_data_ins.getSquareVertices(game.VIEW)
         let viewData = game.map_data_ins.getSquareView(vertices)
-        this.showView(viewData)
-        return viewData
+        this.viewVertices = vertices
+        let lastViewData: Map<number, cc.Vec3> = this.viewMapData || new Map()
+        let nextViewData: Map<number, cc.Vec3> = new Map()
+        this.viewMapData = new Map()
+        for (let index = 0; index < viewData.length; index++) {
+            const tile = viewData[index];
+            let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
+            this.viewMapData.set(gid, tile)
+            if (lastViewData.has(gid)) {
+                lastViewData.delete(gid)
+            }
+            else {
+                nextViewData.set(gid, tile)
+            }
+        }
+        this.viewDeleteTiles = lastViewData
+        this.viewAdditionTiles = nextViewData
+        const mergedMap = game.mergeMaps(lastViewData, nextViewData);
+        this.viewChangeTiles = mergedMap
     }
 
-    private calcDiamondView(tileX: number, tileY: number): cc.Vec3[] {
-        if (!this.tileLabel) this.tileLabel = new Map()
-        if (!this.lightTileLabel) this.lightTileLabel = new Map()
-        this.justShowView()
-        let viewData = game.map_data_ins.getDiamondView(tileX, tileY, 9)
-        this.showView(viewData)
-        return viewData
+    private scheduleShowView() {
+        let viewDelData = Array.from(this.viewDeleteTiles.values())
+        this.justShowView(viewDelData)
+        let viewAddData = Array.from(this.viewAdditionTiles.values())
+        this.showView(viewAddData)
+    }
+
+    private recordPreview() {
+        let vertices = game.map_data_ins.getSquareVertices(cc.size(game.VIEW.width * 3, game.VIEW.height * 3))
+        let viewData = game.map_data_ins.getSquareView(vertices)
+        this.previewVertices = vertices
+        // this.previewMapData = new Map()
+        // for (let index = 0; index < viewData.length; index++) {
+        //     const tile = viewData[index];
+        //     let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
+        //     this.previewMapData.set(gid, tile)
+        // }
     }
 
     private showView(viewData: cc.Vec3[]) {
         viewData.forEach(tile => {
             let name = `${tile.x}_${tile.y}`
-            if (!this.tileLabel.has(name)) {
-                let pos = game.map_data_ins.tileToPixel(tile.x, tile.y)
-                let node = new cc.Node(name)
-                let label = node.addComponent(cc.Label)
-                // label.string = `${name} (${pos.x},${pos.y})`
-                // const row = game.map_data_ins.row
-                // const col = game.map_data_ins.col
-                // label.string = `${game.tileToGID(row, col, tile.x, tile.y)}`
-                label.string = `${name}`
-                label.fontSize = 15
-                label.verticalAlign = cc.Label.VerticalAlign.CENTER
-                node.color = tile.z ? cc.Color.RED : cc.Color.BLUE
-                node.parent = this.node
-                node.setPosition(pos)
-                this.tileLabel.set(name, node)
-                this.lightTileLabel.set(name, node)
-            }
-            else {
-                this.tileLabel.get(name).active = true
-                this.lightTileLabel.set(name, this.tileLabel.get(name))
-            }
+            let node = this.getLabelNode(tile)
+            this.lightTileLabel.set(name, node)
         });
     }
 
@@ -221,12 +276,11 @@ export class TiledMapControl extends cc.Component {
                 scale = this.checkScale((distance.y + delta.y) / distance.y * this.node.scale);
             }
             var pos = touchPoint2.add(cc.v2(distance.x / 2, distance.y / 2))
-            var scX = scale;
-            var disScale = scX - this.node.scaleX;
+            var disScale = scale - this.node.scale;
             var offSetPos = pos.scale(cc.v2(disScale, disScale));
             var mapPos = this.node.getPosition().sub(offSetPos);
-            this.node.position = this.checkPos(cc.v3(mapPos.x, mapPos.y))
-            this.node.scale = scale
+            this.node.position = cc.v3(mapPos.x, mapPos.y)
+            this.setScale(scale)
         }
         else if (touches.length === 1) {
             if (this.isMoving || this.canStartMove(touches[0])) {
@@ -251,7 +305,7 @@ export class TiledMapControl extends cc.Component {
             var distance = this.inertiaVector.len();
             if (inertia < TIGGER_TIME_INTERVAL && distance > TIGGER_DISTANCE_INTERVAL) {
                 this.inertiaVector = this.inertiaVector.normalize();
-                cc.Vec3.multiplyScalar(this.inertiaVector, this.inertiaVector, distance / 5);
+                cc.Vec3.multiplyScalar(this.inertiaVector, this.inertiaVector, distance / 10);
                 this.inertia = true;
             }
 
@@ -273,8 +327,9 @@ export class TiledMapControl extends cc.Component {
         var disScale = scale - this.node.scale;
         var offSetPos = pos.scale(cc.v2(disScale, disScale));
         var mapPos = this.node.getPosition().sub(offSetPos);
-        this.node.position = this.checkPos(cc.v3(mapPos.x, mapPos.y))
-        this.node.scale = scale
+        // this.node.position = this.checkPos(cc.v3(mapPos.x, mapPos.y))
+        this.node.position = cc.v3(mapPos.x, mapPos.y)
+        this.setScale(scale)
     }
 
     reset() {
@@ -305,8 +360,8 @@ export class TiledMapControl extends cc.Component {
 
     private checkPos(nodePos: cc.Vec3) {
         var size = this.getSize();
-        let horizontalDistance: number = Math.floor(Math.abs((size.width - this.width * this.node!.scaleX) / 2));
-        let verticalDistance: number = Math.floor(Math.abs((size.height - this.height * this.node!.scaleY) / 2));
+        let horizontalDistance: number = Math.floor(Math.abs((size.width - this.width * this.node!.scale) / 2));
+        let verticalDistance: number = Math.floor(Math.abs((size.height - this.height * this.node!.scale) / 2));
         if (nodePos.x > horizontalDistance) {
             nodePos.x = horizontalDistance;
         }
@@ -330,5 +385,12 @@ export class TiledMapControl extends cc.Component {
             scale = LIMIT_MIN_SCALE;
         }
         return scale
+    }
+
+    private setScale(scale: number) {
+        if (this.node.scale === scale) return
+        this.node.scale = scale
+        this.target = null
+        this.calcSquareView()
     }
 }

@@ -1,7 +1,7 @@
 import { game } from "../../Game"
+
 /**
  * @author panda
- * 2024/02/29
  */
 export class AStar {
     private openList = new game.util_queue<game.road_apoint>((a: game.road_apoint, b: game.road_apoint) => a.getF() - b.getF())

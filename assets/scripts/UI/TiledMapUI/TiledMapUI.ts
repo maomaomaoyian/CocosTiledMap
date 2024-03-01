@@ -1,7 +1,7 @@
 import { game } from "../../Game";
+
 /**
  * @author panda
- * 2024/02/29
  */
 const { ccclass } = cc._decorator;
 @ccclass
