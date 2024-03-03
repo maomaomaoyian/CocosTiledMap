@@ -4,11 +4,17 @@ import { game } from "../../Game";
  * @author panda
  */
 const { ccclass } = cc._decorator;
-// 问题：差异地块延时展示（缺）
-// 问题：缺少变动地块的算法（已解决）
-// 问题：缩放状态锁定异常（可以接受）
-// 问题：缩放时寻路定位异常（已解决）
-// 问题：视野永远使用正常尺寸视野，不考虑缩放（已解决）
+
+/* 
+当前点与终点是否在视野内
+两线段是否相交。后端每条线应该有独一无二标识
+生成指定图案线段和目标点实时连线脚本，走过路线变色， -->-->-->-->
+渲染导航路线
+展示视野数据
+隐藏视野数据
+实时视野数据
+*/
+
 
 /** 精度 */
 const ACCURACY = 0.01;
@@ -23,11 +29,6 @@ const EXTEND_HEIGHT = 0;
 
 const LIMIT_MIN_SCALE: number = 1;
 const LIMIT_MAX_SCALE: number = 2;
-
-enum EViewChange {
-    DELETE = 1,
-    ADDITION = 2
-}
 
 @ccclass
 export class TiledMapControl extends cc.Component {

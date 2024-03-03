@@ -42,7 +42,7 @@ export class TiledMapData {
         this.widthHalf = this.width / 2;
         this.heightHalf = this.height / 2;
         this.setBarrier();
-        game.PRINT && console.log(`地图宽${this.width},地图高${this.height},行${this.row},列${this.col},障碍${this.barrier.size}`);
+        game.PRINT && console.log(`地图像素宽度${this.width},地图像素高度${this.height},行${this.row},列${this.col},障碍${this.barrier.size}`);
     }
 
     findPath(sX: number, sY: number, eX: number, eY: number): [number, number][] {
@@ -88,13 +88,13 @@ export class TiledMapData {
     isBarrier(tiledX: number, tiledY: number): boolean {
         let gid = game.tileToGID(this.row, this.col, tiledX, tiledY);
         if (
-            this.tiledmap.getLayer("barrier") &&
-            this.tiledmap.getLayer("barrier").getTiles()[gid] > 0
+            this.tiledmap.getLayer(game.Layer.BARRIER) &&
+            this.tiledmap.getLayer(game.Layer.BARRIER).getTiles()[gid] > 0
         )
             return true;
         if (
-            this.tiledmap.getLayer("floor") &&
-            this.tiledmap.getLayer("floor").getTiles()[gid] === 0
+            this.tiledmap.getLayer(game.Layer.FLOOR) &&
+            this.tiledmap.getLayer(game.Layer.FLOOR).getTiles()[gid] === 0
         )
             return true;
         return false;

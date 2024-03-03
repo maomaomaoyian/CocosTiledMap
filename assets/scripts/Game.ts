@@ -63,6 +63,11 @@ export module game {
     export const presetWidth = 1000
     export const realTimeOfView = true
 
+    export enum Layer {
+        BARRIER = "barrier",
+        FLOOR = "floor",
+    }
+
     export function isInView(node: cc.Node): boolean {
         let camera = cc
             .find("Canvas")
