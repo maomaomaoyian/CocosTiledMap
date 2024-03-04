@@ -52,6 +52,7 @@ export class TiledMapControl extends cc.Component {
     private inertiaVector: cc.Vec3 = new cc.Vec3();
 
     /** --- 视野数据 --- */
+    private labelNodePool: cc.Node[] = []
     private recordLastTile: cc.Vec3
     private recordLastCenter: cc.Vec3
     private lightTileLabel: Map<string, cc.Node>
@@ -62,6 +63,9 @@ export class TiledMapControl extends cc.Component {
     private viewChangeTiles: Map<number, cc.Vec3> = new Map()
     private previewVertices: cc.Vec3[] = []
     private previewMapData: Map<number, cc.Vec3> = new Map()
+    private previewDeleteTiles: Map<number, cc.Vec3> = new Map()
+    private previewAdditionTiles: Map<number, cc.Vec3> = new Map()
+    private previewChangeTiles: Map<number, cc.Vec3> = new Map()
 
     private getSize(): cc.Size {
         return this.nodeParent.getContentSize();
@@ -149,7 +153,6 @@ export class TiledMapControl extends cc.Component {
         } while (viewData.length > 0);
     }
 
-    private labelNodePool: cc.Node[] = []
     private getLabelNode(tile: cc.Vec3): cc.Node {
         let node = this.labelNodePool.pop()
         let label: cc.Label;
@@ -175,6 +178,7 @@ export class TiledMapControl extends cc.Component {
         node.setPosition(pos)
         return node
     }
+
     private pushLabel(node: cc.Node) {
         node.active = false
         this.labelNodePool.push(node)
@@ -194,8 +198,6 @@ export class TiledMapControl extends cc.Component {
     private recordView() {
         let vertices = game.map_data_ins.getSquareVertices(game.VIEW)
         this.viewVertices = vertices
-        let bool = this.isPathInView()
-        game.PRINT && console.error(`${bool ? "在" : "不在"}视野`)
         game.mapModel.viewVertices = vertices
         let viewData = game.map_data_ins.getSquareView(vertices)
         let lastViewData: Map<number, cc.Vec3> = this.viewMapData || new Map()
@@ -218,6 +220,31 @@ export class TiledMapControl extends cc.Component {
         this.viewChangeTiles = mergedMap
     }
 
+    private recordPreview() {
+        let vertices = game.map_data_ins.getSquareVertices(cc.size(game.VIEW.width * 3, game.VIEW.height * 3))
+        this.previewVertices = vertices
+        if (!game.DEV) return
+        let viewData = game.map_data_ins.getSquareView(vertices)
+        let lastViewData: Map<number, cc.Vec3> = this.previewMapData || new Map()
+        let nextViewData: Map<number, cc.Vec3> = new Map()
+        this.previewMapData = new Map()
+        for (let index = 0; index < viewData.length; index++) {
+            const tile = viewData[index];
+            let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
+            this.previewMapData.set(gid, tile)
+            if (lastViewData.has(gid)) {
+                lastViewData.delete(gid)
+            }
+            else {
+                nextViewData.set(gid, tile)
+            }
+        }
+        this.previewDeleteTiles = lastViewData
+        this.previewAdditionTiles = nextViewData
+        const mergedMap = game.mergeMaps(lastViewData, nextViewData);
+        this.previewChangeTiles = mergedMap
+    }
+
     private isPathInView(): boolean {
         let vec0 = this.viewVertices[0]
         let vec1 = this.viewVertices[1]
@@ -236,19 +263,6 @@ export class TiledMapControl extends cc.Component {
         this.justShowView(viewDelData)
         let viewAddData = Array.from(this.viewAdditionTiles.values())
         this.showView(viewAddData)
-    }
-
-    private recordPreview() {
-        let vertices = game.map_data_ins.getSquareVertices(cc.size(game.VIEW.width * 3, game.VIEW.height * 3))
-        this.previewVertices = vertices
-        if (!game.DEV) return
-        let viewData = game.map_data_ins.getSquareView(vertices)
-        this.previewMapData = new Map()
-        for (let index = 0; index < viewData.length; index++) {
-            const tile = viewData[index];
-            let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
-            this.previewMapData.set(gid, tile)
-        }
     }
 
     private showView(viewData: cc.Vec3[]) {
