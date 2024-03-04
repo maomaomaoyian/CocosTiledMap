@@ -173,6 +173,7 @@ export class TiledMapControl extends cc.Component {
         this.recordView()
         this.recordPreview()
         this.scheduleShowView()
+        this.drawDiagonalLines()
         // this.unschedule(this.scheduleShowView)
         // this.scheduleOnce(this.scheduleShowView, 0.04)
     }
@@ -180,6 +181,9 @@ export class TiledMapControl extends cc.Component {
     private recordView() {
         let vertices = game.map_data_ins.getSquareVertices(game.VIEW)
         this.viewVertices = vertices
+        let bool = this.isPathInView()
+        game.PRINT && console.error(`${bool ? "在" : "不在"}视野`)
+        game.mapModel.viewVertices = vertices
         let viewData = game.map_data_ins.getSquareView(vertices)
         let lastViewData: Map<number, cc.Vec3> = this.viewMapData || new Map()
         let nextViewData: Map<number, cc.Vec3> = new Map()
@@ -199,6 +203,18 @@ export class TiledMapControl extends cc.Component {
         this.viewAdditionTiles = nextViewData
         const mergedMap = game.mergeMaps(lastViewData, nextViewData);
         this.viewChangeTiles = mergedMap
+    }
+
+    private isPathInView(): boolean {
+        let vec0 = this.viewVertices[0]
+        let vec1 = this.viewVertices[1]
+        let vec2 = this.viewVertices[2]
+        let vec3 = this.viewVertices[3]
+        let bool = game.isIntersect([game.mapModel.pathStart, game.mapModel.pathEnd], [[vec0.x, vec0.y], [vec3.x, vec3.y]])
+        if (!bool) {
+            bool = game.isIntersect([game.mapModel.pathStart, game.mapModel.pathEnd], [[vec1.x, vec1.y], [vec2.x, vec2.y]])
+        }
+        return bool
     }
 
     private scheduleShowView() {
@@ -384,5 +400,27 @@ export class TiledMapControl extends cc.Component {
         this.node.scale = scale
         this.target = null
         this.calcSquareView()
+    }
+
+    private drawDiagonalLines() {
+        let viewVertices = game.mapModel.viewVertices
+        let vec0 = game.map_data_ins.tileToPixel(viewVertices[0].x, viewVertices[0].y)
+        let vec1 = game.map_data_ins.tileToPixel(viewVertices[1].x, viewVertices[1].y)
+        let vec2 = game.map_data_ins.tileToPixel(viewVertices[2].x, viewVertices[2].y)
+        let vec3 = game.map_data_ins.tileToPixel(viewVertices[3].x, viewVertices[3].y)
+
+        let node = this.node;
+        let diagonalNode = node.getChildByName("diagonalNode") || new cc.Node("diagonalNode");
+        if (!diagonalNode.parent) diagonalNode.parent = node;
+        let graphics = diagonalNode.getComponent(cc.Graphics) || diagonalNode.addComponent(cc.Graphics);
+        graphics.clear();
+        graphics.strokeColor = cc.Color.YELLOW;
+        graphics.lineWidth = 5;
+
+        graphics.moveTo(vec0.x, vec0.y);
+        graphics.lineTo(vec3.x, vec3.y);
+        graphics.moveTo(vec1.x, vec1.y);
+        graphics.lineTo(vec2.x, vec2.y);
+        graphics.stroke();
     }
 }

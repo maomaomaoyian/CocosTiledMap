@@ -18,6 +18,12 @@ export class TiledMapModel {
     private $roooomGID: Map<number, number> = new Map()
     /** 已经预设 */
     private alreadyPreset: boolean
+    /** 视野顶点 */
+    public viewVertices: cc.Vec3[]
+    /** (测试)路线起点 */
+    public pathStart: [number, number]
+    /** (测试)路线终点 */
+    public pathEnd: [number, number]
 
     allotRoooom(row?: number, col?: number) {
         if (row <= 0 || col <= 0) return
@@ -57,5 +63,4 @@ export class TiledMapModel {
     }
 
 }
-window["MTiledMap"] = TiledMapModel.instance
 

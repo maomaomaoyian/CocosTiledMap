@@ -77,4 +77,15 @@ export default class TiledMapUI extends cc.Component {
         let tile = game.map_data_ins.pixelToTile(pos)
         this.l_center.string = `屏幕中心位置：${tile.x}_${tile.y} (${pos.x},${pos.y})`
     }
+
+    update(dt: number): void {
+        let startArr = this.e_startPos.string.split(",")
+        let endArr = this.e_endPos.string.split(",")
+        let sX = Number(startArr[0])
+        let sY = Number(startArr[1])
+        let eX = Number(endArr[0])
+        let eY = Number(endArr[1])
+        game.mapModel.pathStart = [sX, sY]
+        game.mapModel.pathEnd = [eX, eY]
+    }
 }

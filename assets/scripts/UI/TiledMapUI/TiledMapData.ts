@@ -60,18 +60,23 @@ export class TiledMapData {
         let lineNode = node.getChildByName("lineNode") || new cc.Node("lineNode");
         if (!lineNode.parent) lineNode.parent = node;
 
-        let graphics =
-            lineNode.getComponent(cc.Graphics) || lineNode.addComponent(cc.Graphics);
+        let graphics = lineNode.getComponent(cc.Graphics) || lineNode.addComponent(cc.Graphics);
         graphics.clear();
         graphics.strokeColor = cc.Color.GREEN;
         graphics.lineWidth = 5;
-        let vec2 = null;
-        vec2 = this.tileToPixel(path[0][0], path[0][1]);
-        graphics.moveTo(vec2.x, vec2.y);
-        path.forEach((one) => {
-            vec2 = this.tileToPixel(one[0], one[1]);
+        const startVec = this.tileToPixel(path[0][0], path[0][1]);
+        graphics.moveTo(startVec.x, startVec.y);
+        let endVec
+        path.forEach((one, index) => {
+            let vec2 = this.tileToPixel(one[0], one[1]);
             graphics.lineTo(vec2.x, vec2.y);
+            if (!path[index + 1]) endVec = vec2
         });
+        graphics.stroke();
+
+        graphics.strokeColor = cc.Color.RED;
+        graphics.moveTo(startVec.x, startVec.y);
+        graphics.lineTo(endVec.x, endVec.y);
         graphics.stroke();
     }
 

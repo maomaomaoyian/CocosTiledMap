@@ -1,6 +1,7 @@
 import { EntityMove } from "./UI/TiledMapUI/Move";
 import { TiledMapControl } from "./UI/TiledMapUI/TiledMapControl";
 import { TiledMapData } from "./UI/TiledMapUI/TiledMapData";
+import { TiledMapModel } from "./UI/TiledMapUI/TiledMapModel";
 import TiledMapUI from "./UI/TiledMapUI/TiledMapUI";
 import { AStar } from "./UI/road/AStar";
 import { APoint } from "./UI/road/Point";
@@ -50,6 +51,7 @@ export module game {
     export const util_queue = PriorityQueue
     export const road_astar = AStar
     export const road_apoint = APoint
+    export const mapModel = TiledMapModel.instance
     export type road_apoint = APoint
     export const map_control = TiledMapControl
     export type map_control = TiledMapControl
@@ -110,5 +112,18 @@ export module game {
             resultSet.add(item);
         }
         return resultSet;
+    }
+
+    /** 两向量是否相交 */
+    export function isIntersect(line1: [number, number][], line2: [number, number][]): boolean {
+        const [[x1, y1], [x2, y2]] = line1;
+        const [[x3, y3], [x4, y4]] = line2;
+        // 计算向量叉积
+        const crossProduct = ([x1, y1]: [number, number], [x2, y2]: [number, number]) => x1 * y2 - x2 * y1;
+        const d1 = crossProduct([x2 - x1, y2 - y1], [x3 - x1, y3 - y1]);
+        const d2 = crossProduct([x2 - x1, y2 - y1], [x4 - x1, y4 - y1]);
+        const d3 = crossProduct([x4 - x3, y4 - y3], [x1 - x3, y1 - y3]);
+        const d4 = crossProduct([x4 - x3, y4 - y3], [x2 - x3, y2 - y3]);
+        return d1 * d2 < 0 && d3 * d4 < 0;
     }
 }
