@@ -46,7 +46,6 @@ export default class Game extends cc.Component {
 }
 
 export module game {
-    export const PRINT = true
     export const util_vec = VecUtil
     export const util_queue = PriorityQueue
     export const road_astar = AStar
@@ -57,18 +56,30 @@ export module game {
     export type map_control = TiledMapControl
     export const action_move = EntityMove
     export const map_data_ins = TiledMapData.instance
+
+    /** 层级 */
+    export enum Layer { BARRIER = "barrier", FLOOR = "floor", }
+    /** 视野精度枚举 */
+    export enum VIEW_PARTICAL { TILE, PIXEL }
+
+    /** 视野范围 */
     export const VIEW = cc.winSize
-
+    /** 开发模式 */
+    export const DEV = true
+    /** 打印日志 */
+    export const PRINT = true
+    /** 房间横向跨度 */
     export const roomX = 30
+    /** 房间纵向跨度 */
     export const roomY = 60
+    /** 房间预设高度 */
     export const presetHeight = 1000
+    /** 房间预设宽度 */
     export const presetWidth = 1000
+    /** 实时视野 */
     export const realTimeOfView = true
-
-    export enum Layer {
-        BARRIER = "barrier",
-        FLOOR = "floor",
-    }
+    /** 视野更新精度 */
+    export const ViewUpdatePartical = VIEW_PARTICAL.TILE
 
     export function isInCamera(node: cc.Node): boolean {
         let camera = cc

@@ -53,6 +53,7 @@ export class TiledMapControl extends cc.Component {
 
     /** --- 视野数据 --- */
     private recordLastTile: cc.Vec3
+    private recordLastCenter: cc.Vec3
     private lightTileLabel: Map<string, cc.Node>
     private viewVertices: cc.Vec3[] = []
     private viewMapData: Map<number, cc.Vec3> = new Map()
@@ -116,14 +117,26 @@ export class TiledMapControl extends cc.Component {
             }
         }
 
-        let canvasCenterPos = this.canvasCenterToMap()
-        let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
-        if (!this.recordLastTile || !this.recordLastTile.equals(tile)) {
-            this.recordLastTile = tile
-            let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
-            this.calcSquareView()
-            window["Game"].tiledMapUI.updateCenterLab(tileCenter)
+        const canvasCenterPos = this.canvasCenterToMap()
+        if (game.ViewUpdatePartical === game.VIEW_PARTICAL.TILE) {
+            let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
+            if (!this.recordLastTile || !this.recordLastTile.equals(tile)) {
+                this.recordLastTile = tile
+                let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
+                this.calcSquareView()
+                window["Game"].tiledMapUI.updateCenterLab(tileCenter)
+            }
         }
+        else if (game.ViewUpdatePartical === game.VIEW_PARTICAL.PIXEL) {
+            if (!this.recordLastCenter || !this.recordLastCenter.fuzzyEquals(canvasCenterPos, 5)) {
+                this.recordLastCenter = canvasCenterPos
+                let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
+                let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
+                this.calcSquareView()
+                window["Game"].tiledMapUI.updateCenterLab(tileCenter)
+            }
+        }
+
     }
 
     private justShowView(viewData: cc.Vec3[]) {
@@ -218,6 +231,7 @@ export class TiledMapControl extends cc.Component {
     }
 
     private scheduleShowView() {
+        if (!game.DEV) return
         let viewDelData = Array.from(this.viewDeleteTiles.values())
         this.justShowView(viewDelData)
         let viewAddData = Array.from(this.viewAdditionTiles.values())
@@ -227,7 +241,7 @@ export class TiledMapControl extends cc.Component {
     private recordPreview() {
         let vertices = game.map_data_ins.getSquareVertices(cc.size(game.VIEW.width * 3, game.VIEW.height * 3))
         this.previewVertices = vertices
-        return
+        if (!game.DEV) return
         let viewData = game.map_data_ins.getSquareView(vertices)
         this.previewMapData = new Map()
         for (let index = 0; index < viewData.length; index++) {
@@ -403,6 +417,7 @@ export class TiledMapControl extends cc.Component {
     }
 
     private drawDiagonalLines() {
+        if (!game.DEV) return
         let viewVertices = game.mapModel.viewVertices
         let vec0 = game.map_data_ins.tileToPixel(viewVertices[0].x, viewVertices[0].y)
         let vec1 = game.map_data_ins.tileToPixel(viewVertices[1].x, viewVertices[1].y)

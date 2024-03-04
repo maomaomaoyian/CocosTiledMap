@@ -55,6 +55,7 @@ export class TiledMapData {
     }
 
     drawPath(path: [number, number][]) {
+        if (!game.DEV) return
         if (!path.length) return;
         let node = this.tiledmap.node;
         let lineNode = node.getChildByName("lineNode") || new cc.Node("lineNode");
