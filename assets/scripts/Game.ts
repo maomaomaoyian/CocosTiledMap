@@ -96,11 +96,19 @@ export module game {
         return tiledX < 0 || tiledY < 0 || tiledX >= row || tiledY >= col;
     }
 
-    export function mergeMaps<t, t1>(map1: Map<t, t1>, map2: Map<t, t1>): Map<t, t1> {
+    export function mergeMaps<T, T1>(map1: Map<T, T1>, map2: Map<T, T1>): Map<T, T1> {
         const resultMap = new Map(map1);
         for (const [key, value] of map2) {
             resultMap.set(key, value);
         }
         return resultMap;
+    }
+
+    export function mergeSets<T>(set1: Set<T>, set2: Set<T>): Set<T> {
+        const resultSet = new Set(set1);
+        for (const item of set2) {
+            resultSet.add(item);
+        }
+        return resultSet;
     }
 }
