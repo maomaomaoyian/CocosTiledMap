@@ -95,7 +95,7 @@ export class TiledMapData {
     }
 
     /**
-     * 设置地形障碍
+     * 记录地形障碍
      */
     setBarrier() {
         for (let x = 0; x < this.row; x++) {
