@@ -60,7 +60,7 @@ export class TiledMapControl extends cc.Component {
     private viewAdditionTiles: Map<number, cc.Vec3> = new Map()
     private viewChangeTiles: Map<number, cc.Vec3> = new Map()
     private previewVertices: cc.Vec3[] = []
-    // private previewMapData: Map<number, cc.Vec3> = new Map()
+    private previewMapData: Map<number, cc.Vec3> = new Map()
 
     private getSize(): cc.Size {
         return this.nodeParent.getContentSize();
@@ -179,8 +179,8 @@ export class TiledMapControl extends cc.Component {
 
     private recordView() {
         let vertices = game.map_data_ins.getSquareVertices(game.VIEW)
-        let viewData = game.map_data_ins.getSquareView(vertices)
         this.viewVertices = vertices
+        let viewData = game.map_data_ins.getSquareView(vertices)
         let lastViewData: Map<number, cc.Vec3> = this.viewMapData || new Map()
         let nextViewData: Map<number, cc.Vec3> = new Map()
         this.viewMapData = new Map()
@@ -210,14 +210,15 @@ export class TiledMapControl extends cc.Component {
 
     private recordPreview() {
         let vertices = game.map_data_ins.getSquareVertices(cc.size(game.VIEW.width * 3, game.VIEW.height * 3))
-        let viewData = game.map_data_ins.getSquareView(vertices)
         this.previewVertices = vertices
-        // this.previewMapData = new Map()
-        // for (let index = 0; index < viewData.length; index++) {
-        //     const tile = viewData[index];
-        //     let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
-        //     this.previewMapData.set(gid, tile)
-        // }
+        return
+        let viewData = game.map_data_ins.getSquareView(vertices)
+        this.previewMapData = new Map()
+        for (let index = 0; index < viewData.length; index++) {
+            const tile = viewData[index];
+            let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
+            this.previewMapData.set(gid, tile)
+        }
     }
 
     private showView(viewData: cc.Vec3[]) {
