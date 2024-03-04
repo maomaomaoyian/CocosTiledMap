@@ -53,14 +53,16 @@ export class TiledMapControl extends cc.Component {
 
     /** --- 视野数据 --- */
     private labelNodePool: cc.Node[] = []
-    private recordLastTile: cc.Vec3
-    private recordLastCenter: cc.Vec3
     private lightTileLabel: Map<string, cc.Node>
+    private viewLastCenterTile: cc.Vec3
+    private viewLastCenterPos: cc.Vec3
     private viewVertices: cc.Vec3[] = []
     private viewMapData: Map<number, cc.Vec3> = new Map()
     private viewDeleteTiles: Map<number, cc.Vec3> = new Map()
     private viewAdditionTiles: Map<number, cc.Vec3> = new Map()
     private viewChangeTiles: Map<number, cc.Vec3> = new Map()
+    private previewLastCenterTile: cc.Vec3
+    private previewLastCenterPos: cc.Vec3
     private previewVertices: cc.Vec3[] = []
     private previewMapData: Map<number, cc.Vec3> = new Map()
     private previewDeleteTiles: Map<number, cc.Vec3> = new Map()
@@ -79,6 +81,8 @@ export class TiledMapControl extends cc.Component {
             let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
             window["Game"].tiledMapUI.updateTouchLab(tileCenter)
         }
+
+        this.setMapByPos(cc.v3())
     }
 
     getScreenPosToMapPos(event: cc.Event.EventTouch): cc.Vec3 {
@@ -99,7 +103,7 @@ export class TiledMapControl extends cc.Component {
     }
 
     setMapByPos(pos: cc.Vec3) {
-        pos = this.checkPos(this.follow_position);
+        pos = this.checkPos(pos);
         this.node!.position = pos;
     }
 
@@ -117,7 +121,7 @@ export class TiledMapControl extends cc.Component {
         }
 
         if (this.inertia) {
-            this.inertiaVector = this.inertiaVector.lerp(cc.Vec3.ZERO, dt * 2)
+            this.inertiaVector = this.inertiaVector.lerp(cc.Vec3.ZERO, dt * 10)
             this.dir.set(this.inertiaVector);
             this.dealPos();
             if (this.inertiaVector.fuzzyEquals(cc.Vec3.ZERO, PARTICAL)) {
@@ -127,28 +131,66 @@ export class TiledMapControl extends cc.Component {
             }
         }
 
+        this.calcViewData()
     }
 
     private calcViewData() {
         const canvasCenterPos = this.canvasCenterToMap()
         if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
             let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
-            if (!this.recordLastTile || !this.recordLastTile.equals(tile)) {
-                this.recordLastTile = tile
+            if (!this.viewLastCenterTile || !this.viewLastCenterTile.equals(tile)) {
+                this.viewLastCenterTile = tile
                 let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
                 this.calcSquareView()
                 window["Game"].tiledMapUI.updateCenterLab(tileCenter)
+                game.PRINT && console.error("视野触发计算01")
             }
         }
         else if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.PIXEL) {
-            if (!this.recordLastCenter || !this.recordLastCenter.fuzzyEquals(canvasCenterPos, 5)) {
-                this.recordLastCenter = canvasCenterPos
+            if (!this.viewLastCenterPos || !this.viewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
+                this.viewLastCenterPos = canvasCenterPos
                 let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
                 let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
                 this.calcSquareView()
                 window["Game"].tiledMapUI.updateCenterLab(tileCenter)
+                game.PRINT && console.error("视野触发计算02")
             }
         }
+    }
+
+    private calcPreviewData() {
+        const canvasCenterPos = this.canvasCenterToMap()
+        if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
+            let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
+            if (!this.previewLastCenterTile || !this.previewLastCenterTile.equals(tile)) {
+                this.previewLastCenterTile = tile
+                this.calcSquarePreview()
+                game.PRINT && console.error("（预）视野触发计算01")
+            }
+        }
+        else if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.PIXEL) {
+            if (!this.previewLastCenterPos || !this.previewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
+                this.previewLastCenterPos = canvasCenterPos
+                this.calcSquarePreview()
+                game.PRINT && console.error("（预）视野触发计算02")
+            }
+        }
+    }
+
+    private calcSquareView() {
+        if (!game.VIEW_REALTIME && this.viewVertices.length) return
+        if (!this.lightTileLabel) this.lightTileLabel = new Map()
+        this.recordView()
+        this.drawDiagonalLines()
+        this.showDataView()
+    }
+
+    private calcSquarePreview() {
+        if (!game.VIEW_REALTIME && this.previewVertices.length) return
+        if (!this.lightTileLabel) this.lightTileLabel = new Map()
+        this.recordPreview()
+        // this.drawDiagonalLines()
+        // this.showDataView()
     }
 
     private justShowView(viewData: cc.Vec3[]) {
@@ -186,15 +228,6 @@ export class TiledMapControl extends cc.Component {
     private pushLabel(node: cc.Node) {
         node.active = false
         this.labelNodePool.push(node)
-    }
-
-    private calcSquareView() {
-        if (!game.VIEW_REALTIME && this.viewVertices.length) return
-        if (!this.lightTileLabel) this.lightTileLabel = new Map()
-        this.recordView()
-        this.recordPreview()
-        this.showDataView()
-        this.drawDiagonalLines()
     }
 
     private recordView() {
@@ -344,7 +377,7 @@ export class TiledMapControl extends cc.Component {
 
             this.reset();
 
-            this.calcViewData()
+            this.calcPreviewData()
         }
     }
 
@@ -411,7 +444,6 @@ export class TiledMapControl extends cc.Component {
         if (this.node.scale === scale) return
         this.node.scale = scale
         this.target = null
-        this.calcSquareView()
     }
 
     private drawDiagonalLines() {
