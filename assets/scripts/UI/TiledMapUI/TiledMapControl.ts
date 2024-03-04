@@ -9,11 +9,11 @@ const { ccclass } = cc._decorator;
 const LIMIT_MIN_SCALE: number = 1;
 /** 地图最大缩放 */
 const LIMIT_MAX_SCALE: number = 2;
-/** 地图冗余宽度 */
+/** 地图扩展宽度 */
 const EXTEND_WIDTH = 0;
-/** 地图冗余高度 */
+/** 地图扩展高度 */
 const EXTEND_HEIGHT = 0;
-/** 粒度 */
+/** 更新粒度 */
 const PARTICAL = 0.01;
 /** 触发时间间隔（ms） */
 const TIGGER_TIME_INTERVAL = 200;
