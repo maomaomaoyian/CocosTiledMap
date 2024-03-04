@@ -68,7 +68,7 @@ export module game {
         FLOOR = "floor",
     }
 
-    export function isInView(node: cc.Node): boolean {
+    export function isInCamera(node: cc.Node): boolean {
         let camera = cc
             .find("Canvas")
             .getChildByName("Main Camera")
