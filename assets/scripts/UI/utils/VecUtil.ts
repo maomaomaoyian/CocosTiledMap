@@ -31,4 +31,25 @@ export class VecUtil {
 
         return pStart.multiplyScalar(1 - t).add(pEnd.multiplyScalar(t));
     }
+
+    static calculateAngleByVec2(v1: cc.Vec2, v2: cc.Vec2): number {
+        const deltaX = v2.x - v1.x;
+        const deltaY = v2.y - v1.y;
+        const angleInRadians = Math.atan2(deltaY, deltaX);
+        const angleInDegrees = angleInRadians * (180 / Math.PI);
+        return angleInDegrees;
+    }
+
+    static calculateAngleByVec3(v1: cc.Vec3, v2: cc.Vec3): number {
+        // 将向量转换为单位向量
+        const unitV1 = v1.normalize();
+        const unitV2 = v2.normalize();
+        // 计算两个单位向量的点积
+        const dotProduct = unitV1.dot(unitV2);
+        // 使用反余弦函数计算夹角的弧度值
+        const angleInRadians = Math.acos(dotProduct);
+        // 将弧度值转换为角度值
+        const angleInDegrees = angleInRadians * (180 / Math.PI);
+        return angleInDegrees;
+    }
 }
