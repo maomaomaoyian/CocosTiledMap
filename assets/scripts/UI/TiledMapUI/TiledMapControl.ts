@@ -127,6 +127,9 @@ export class TiledMapControl extends cc.Component {
             }
         }
 
+    }
+
+    private calcViewData() {
         const canvasCenterPos = this.canvasCenterToMap()
         if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
             let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
@@ -146,7 +149,6 @@ export class TiledMapControl extends cc.Component {
                 window["Game"].tiledMapUI.updateCenterLab(tileCenter)
             }
         }
-
     }
 
     private justShowView(viewData: cc.Vec3[]) {
@@ -341,6 +343,8 @@ export class TiledMapControl extends cc.Component {
             }
 
             this.reset();
+
+            this.calcViewData()
         }
     }
 
