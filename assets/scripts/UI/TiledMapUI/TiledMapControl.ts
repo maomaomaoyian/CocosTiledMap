@@ -67,10 +67,6 @@ export class TiledMapControl extends cc.Component {
     private previewAdditionTiles: Map<number, cc.Vec3> = new Map()
     private previewChangeTiles: Map<number, cc.Vec3> = new Map()
 
-    private getSize(): cc.Size {
-        return this.nodeParent.getContentSize();
-    }
-
     onLoad() {
         this.tiledmap = this.node.getComponent(cc.TiledMap)
         this.nodeParent = this.node.parent!;
@@ -85,6 +81,13 @@ export class TiledMapControl extends cc.Component {
         }
     }
 
+    getScreenPosToMapPos(event: cc.Event.EventTouch): cc.Vec3 {
+        let uil = event.getLocation();
+        let worldPos: cc.Vec3 = cc.v3(uil.x, uil.y);
+        let mapPos: cc.Vec3 = this.node.convertToNodeSpaceAR(worldPos);
+        return mapPos;
+    }
+
     canvasCenterToMap(): cc.Vec3 {
         let canvas = cc.find("Canvas")
         let worldPos = canvas.convertToWorldSpaceAR(cc.v3())
@@ -95,11 +98,14 @@ export class TiledMapControl extends cc.Component {
         this.target = node
     }
 
-    setMapByTarget(pos: cc.Vec3) {
-        this.follow_position.x = -pos.x * this.node.scale;
-        this.follow_position.y = -pos.y * this.node.scale;
-        var pos = this.checkPos(this.follow_position);
+    setMapByPos(pos: cc.Vec3) {
+        pos = this.checkPos(this.follow_position);
         this.node!.position = pos;
+    }
+
+    setMapByTile(tileX: number, tileY: number) {
+        let pos = game.map_data_ins.tileToPixel(tileX, tileY)
+        this.setMapByPos(pos)
     }
 
     lateUpdate(dt: number) {
@@ -168,10 +174,6 @@ export class TiledMapControl extends cc.Component {
             label = node.getComponent(cc.Label)
         }
         label.string = `${name}`
-        // label.string = `${name} (${pos.x},${pos.y})`
-        // const row = game.map_data_ins.row
-        // const col = game.map_data_ins.col
-        // label.string = `${game.tileToGID(row, col, tile.x, tile.y)}`
         node.color = tile.z ? cc.Color.RED : cc.Color.BLUE
         node.parent = this.node
         let pos = game.map_data_ins.tileToPixel(tile.x, tile.y)
@@ -189,17 +191,15 @@ export class TiledMapControl extends cc.Component {
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordView()
         this.recordPreview()
-        this.scheduleShowView()
+        this.showDataView()
         this.drawDiagonalLines()
-        // this.unschedule(this.scheduleShowView)
-        // this.scheduleOnce(this.scheduleShowView, 0.04)
     }
 
     private recordView() {
-        let vertices = game.map_data_ins.getSquareVertices(game.VIEW)
+        let vertices = game.getSquareVertices(this.canvasCenterToMap(), game.VIEW)
         this.viewVertices = vertices
         game.mapModel.viewVertices = vertices
-        let viewData = game.map_data_ins.getSquareView(vertices)
+        let viewData = game.getSquareView(vertices)
         let lastViewData: Map<number, cc.Vec3> = this.viewMapData || new Map()
         let nextViewData: Map<number, cc.Vec3> = new Map()
         this.viewMapData = new Map()
@@ -221,10 +221,10 @@ export class TiledMapControl extends cc.Component {
     }
 
     private recordPreview() {
-        let vertices = game.map_data_ins.getSquareVertices(cc.size(game.VIEW.width * 3, game.VIEW.height * 3))
+        let vertices = game.getSquareVertices(this.canvasCenterToMap(), cc.size(game.VIEW.width * 3, game.VIEW.height * 3))
         this.previewVertices = vertices
         if (!game.DEV) return
-        let viewData = game.map_data_ins.getSquareView(vertices)
+        let viewData = game.getSquareView(vertices)
         let lastViewData: Map<number, cc.Vec3> = this.previewMapData || new Map()
         let nextViewData: Map<number, cc.Vec3> = new Map()
         this.previewMapData = new Map()
@@ -245,7 +245,7 @@ export class TiledMapControl extends cc.Component {
         this.previewChangeTiles = mergedMap
     }
 
-    private scheduleShowView() {
+    private showDataView() {
         if (!game.DEV) return
         let viewDelData = Array.from(this.viewDeleteTiles.values())
         this.justShowView(viewDelData)
@@ -360,13 +360,6 @@ export class TiledMapControl extends cc.Component {
         this.isMoving = false;
     }
 
-    getScreenPosToMapPos(event: cc.Event.EventTouch): cc.Vec3 {
-        let uil = event.getLocation();
-        let worldPos: cc.Vec3 = cc.v3(uil.x, uil.y);
-        let mapPos: cc.Vec3 = this.node.convertToNodeSpaceAR(worldPos);
-        return mapPos;
-    }
-
     private canStartMove(touch: cc.Touch): boolean {
         let startPos = touch.getStartLocation();
         let nowPos = touch.getLocation();
@@ -382,7 +375,7 @@ export class TiledMapControl extends cc.Component {
     }
 
     private checkPos(nodePos: cc.Vec3) {
-        var size = this.getSize();
+        var size = this.nodeParent.getContentSize();
         let horizontalDistance: number = Math.floor(Math.abs((size.width - this.pixelWidth * this.node!.scale) / 2));
         let verticalDistance: number = Math.floor(Math.abs((size.height - this.pixelHeight * this.node!.scale) / 2));
         if (nodePos.x > horizontalDistance) {
