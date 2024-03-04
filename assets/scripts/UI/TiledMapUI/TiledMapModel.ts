@@ -28,23 +28,23 @@ export class TiledMapModel {
     allotRoooom(row?: number, col?: number) {
         if (row <= 0 || col <= 0) return
         if (row === undefined || row === null) {
-            row = game.presetWidth
+            row = game.PRESET_WIDTH
         }
         if (col === undefined || col === null) {
-            col = game.presetHeight
+            col = game.PRESET_HEIGHT
         }
-        if (!this.alreadyPreset || (this.alreadyPreset && (row !== game.presetWidth || col !== game.presetHeight))) {
+        if (!this.alreadyPreset || (this.alreadyPreset && (row !== game.PRESET_WIDTH || col !== game.PRESET_HEIGHT))) {
             this.$roooom = new Map()
             this.$roooomGID = new Map()
             let roomId: number = 0
-            for (let roooomY = 0; roooomY < Math.ceil(col / game.roomY); roooomY++) {
-                for (let roooomX = 0; roooomX < Math.ceil(row / game.roomX); roooomX++) {
+            for (let roooomY = 0; roooomY < Math.ceil(col / game.ROOM_COL); roooomY++) {
+                for (let roooomX = 0; roooomX < Math.ceil(row / game.ROOM_ROW); roooomX++) {
                     let tiles = new Map()
                     this.$roooom.set(roomId, tiles)
-                    for (let gridX = 0; gridX < game.roomX; gridX++) {
-                        for (let gridY = 0; gridY < game.roomY; gridY++) {
-                            let x = roooomX * game.roomX + gridX
-                            let y = roooomY * game.roomY + gridY
+                    for (let gridX = 0; gridX < game.ROOM_ROW; gridX++) {
+                        for (let gridY = 0; gridY < game.ROOM_COL; gridY++) {
+                            let x = roooomX * game.ROOM_ROW + gridX
+                            let y = roooomY * game.ROOM_COL + gridY
                             if (!game.isOutIndex(row, col, x, y)) {
                                 let tile = cc.v2(x, y)
                                 let gid = game.tileToGID(row, col, x, y)

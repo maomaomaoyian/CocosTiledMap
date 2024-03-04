@@ -57,29 +57,29 @@ export module game {
     export const action_move = EntityMove
     export const map_data_ins = TiledMapData.instance
 
-    /** 层级 */
+    /** 地形层级 */
     export enum Layer { BARRIER = "barrier", FLOOR = "floor", }
-    /** 视野精度枚举 */
+    /** 视野刷新粒度枚举 */
     export enum VIEW_PARTICAL { TILE, PIXEL }
-
-    /** 视野范围 */
-    export const VIEW = cc.winSize
+    
     /** 开发模式 */
     export const DEV = true
     /** 打印日志 */
     export const PRINT = true
-    /** 房间横向跨度 */
-    export const roomX = 30
-    /** 房间纵向跨度 */
-    export const roomY = 60
-    /** 房间预设高度 */
-    export const presetHeight = 1000
-    /** 房间预设宽度 */
-    export const presetWidth = 1000
+    /** 视野范围 */
+    export const VIEW = cc.winSize
     /** 实时视野 */
-    export const realTimeOfView = true
+    export const VIEW_REALTIME = true
     /** 视野更新精度 */
-    export const ViewUpdatePartical = VIEW_PARTICAL.TILE
+    export const VIEW_UPDATE_PARTICAL = VIEW_PARTICAL.TILE
+    /** 房间横向跨度 */
+    export const ROOM_ROW = 30
+    /** 房间纵向跨度 */
+    export const ROOM_COL = 60
+    /** 房间预设高度 */
+    export const PRESET_HEIGHT = 1000
+    /** 房间预设宽度 */
+    export const PRESET_WIDTH = 1000
 
     export function isInCamera(node: cc.Node): boolean {
         let camera = cc

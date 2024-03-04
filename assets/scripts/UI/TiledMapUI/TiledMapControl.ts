@@ -122,7 +122,7 @@ export class TiledMapControl extends cc.Component {
         }
 
         const canvasCenterPos = this.canvasCenterToMap()
-        if (game.ViewUpdatePartical === game.VIEW_PARTICAL.TILE) {
+        if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
             let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
             if (!this.recordLastTile || !this.recordLastTile.equals(tile)) {
                 this.recordLastTile = tile
@@ -131,7 +131,7 @@ export class TiledMapControl extends cc.Component {
                 window["Game"].tiledMapUI.updateCenterLab(tileCenter)
             }
         }
-        else if (game.ViewUpdatePartical === game.VIEW_PARTICAL.PIXEL) {
+        else if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.PIXEL) {
             if (!this.recordLastCenter || !this.recordLastCenter.fuzzyEquals(canvasCenterPos, 5)) {
                 this.recordLastCenter = canvasCenterPos
                 let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
@@ -185,7 +185,7 @@ export class TiledMapControl extends cc.Component {
     }
 
     private calcSquareView() {
-        if (!game.realTimeOfView && this.viewVertices.length) return
+        if (!game.VIEW_REALTIME && this.viewVertices.length) return
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordView()
         this.recordPreview()
@@ -363,7 +363,6 @@ export class TiledMapControl extends cc.Component {
         var disScale = scale - this.node.scale;
         var offSetPos = pos.scale(cc.v2(disScale, disScale));
         var mapPos = this.node.getPosition().sub(offSetPos);
-        // this.node.position = this.checkPos(cc.v3(mapPos.x, mapPos.y))
         this.node.position = cc.v3(mapPos.x, mapPos.y)
         this.setScale(scale)
     }
