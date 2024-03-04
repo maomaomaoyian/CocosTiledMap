@@ -49,9 +49,9 @@ export class TiledMapControl extends cc.Component {
     /** 位置寄存 */
     private dir: cc.Vec3 = new cc.Vec3();
     /** 地图像素宽度 */
-    private width: number = 0;
+    private pixelWidth: number = 0;
     /** 地图像素高度 */
-    private height: number = 0;
+    private pixelHeight: number = 0;
     /** 跟随目标的位置 */
     private follow_position: cc.Vec3 = new cc.Vec3();
 
@@ -76,12 +76,12 @@ export class TiledMapControl extends cc.Component {
         return this.nodeParent.getContentSize();
     }
 
-    protected onLoad() {
+    onLoad() {
         this.tiledmap = this.node.getComponent(cc.TiledMap)
         this.nodeParent = this.node.parent!;
         var mapSize = this.tiledmap.node.getContentSize()
-        this.width = mapSize.width + EXTEND_WIDTH;
-        this.height = mapSize.height + EXTEND_HEIGHT;
+        this.pixelWidth = mapSize.width + EXTEND_WIDTH;
+        this.pixelHeight = mapSize.height + EXTEND_HEIGHT;
         this.addEvent();
         this.onSingleTouch = (clickPos: cc.Vec3) => {
             let tile = game.map_data_ins.pixelToTile(clickPos)
@@ -361,8 +361,8 @@ export class TiledMapControl extends cc.Component {
 
     private checkPos(nodePos: cc.Vec3) {
         var size = this.getSize();
-        let horizontalDistance: number = Math.floor(Math.abs((size.width - this.width * this.node!.scale) / 2));
-        let verticalDistance: number = Math.floor(Math.abs((size.height - this.height * this.node!.scale) / 2));
+        let horizontalDistance: number = Math.floor(Math.abs((size.width - this.pixelWidth * this.node!.scale) / 2));
+        let verticalDistance: number = Math.floor(Math.abs((size.height - this.pixelHeight * this.node!.scale) / 2));
         if (nodePos.x > horizontalDistance) {
             nodePos.x = horizontalDistance;
         }
