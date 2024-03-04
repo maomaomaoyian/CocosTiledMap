@@ -5,30 +5,20 @@ import { game } from "../../Game";
  */
 const { ccclass } = cc._decorator;
 
-/* 
-当前点与终点是否在视野内
-两线段是否相交。后端每条线应该有独一无二标识
-生成指定图案线段和目标点实时连线脚本，走过路线变色， -->-->-->-->
-渲染导航路线
-展示视野数据
-隐藏视野数据
-实时视野数据
-*/
-
-
-/** 精度 */
-const ACCURACY = 0.01;
-/** 触发时间间隔（ms） */
-const TIGGER_TIME_INTERVAL = 200;
-/** 触发距离间隔*/
-const TIGGER_DISTANCE_INTERVAL = 10;
+/** 地图最小缩放 */
+const LIMIT_MIN_SCALE: number = 1;
+/** 地图最大缩放 */
+const LIMIT_MAX_SCALE: number = 2;
 /** 地图冗余宽度 */
 const EXTEND_WIDTH = 0;
 /** 地图冗余高度 */
 const EXTEND_HEIGHT = 0;
-
-const LIMIT_MIN_SCALE: number = 1;
-const LIMIT_MAX_SCALE: number = 2;
+/** 粒度 */
+const PARTICAL = 0.01;
+/** 触发时间间隔（ms） */
+const TIGGER_TIME_INTERVAL = 200;
+/** 触发距离间隔*/
+const TIGGER_DISTANCE_INTERVAL = 10;
 
 @ccclass
 export class TiledMapControl extends cc.Component {
@@ -119,7 +109,7 @@ export class TiledMapControl extends cc.Component {
             this.inertiaVector = this.inertiaVector.lerp(cc.Vec3.ZERO, dt * 2)
             this.dir.set(this.inertiaVector);
             this.dealPos();
-            if (this.inertiaVector.fuzzyEquals(cc.Vec3.ZERO, ACCURACY)) {
+            if (this.inertiaVector.fuzzyEquals(cc.Vec3.ZERO, PARTICAL)) {
                 this.inertia = false;
                 this.dir.set(cc.Vec3.ZERO);
                 this.inertiaVector.set(cc.Vec3.ZERO);
