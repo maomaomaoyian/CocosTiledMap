@@ -245,18 +245,6 @@ export class TiledMapControl extends cc.Component {
         this.previewChangeTiles = mergedMap
     }
 
-    private isPathInView(): boolean {
-        let vec0 = this.viewVertices[0]
-        let vec1 = this.viewVertices[1]
-        let vec2 = this.viewVertices[2]
-        let vec3 = this.viewVertices[3]
-        let bool = game.isIntersect([game.mapModel.pathStart, game.mapModel.pathEnd], [[vec0.x, vec0.y], [vec3.x, vec3.y]])
-        if (!bool) {
-            bool = game.isIntersect([game.mapModel.pathStart, game.mapModel.pathEnd], [[vec1.x, vec1.y], [vec2.x, vec2.y]])
-        }
-        return bool
-    }
-
     private scheduleShowView() {
         if (!game.DEV) return
         let viewDelData = Array.from(this.viewDeleteTiles.values())

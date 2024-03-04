@@ -61,7 +61,7 @@ export module game {
     export enum Layer { BARRIER = "barrier", FLOOR = "floor", }
     /** 视野刷新粒度枚举 */
     export enum VIEW_PARTICAL { TILE, PIXEL }
-    
+
     /** 开发模式 */
     export const DEV = true
     /** 打印日志 */
@@ -81,22 +81,13 @@ export module game {
     /** 房间预设宽度 */
     export const PRESET_WIDTH = 1000
 
-    export function isInCamera(node: cc.Node): boolean {
-        let camera = cc
-            .find("Canvas")
-            .getChildByName("Main Camera")
-            .getComponent(cc.Camera);
+    export function isNodeInCamera(node: cc.Node): boolean {
+        let camera = cc.find("Canvas").getChildByName("Main Camera").getComponent(cc.Camera);
         let worldPos = node.convertToWorldSpaceAR(cc.Vec3.ZERO);
         let viewArea = camera.getWorldToScreenPoint(worldPos);
-        return (
-            viewArea.x <= cc.winSize.width &&
-            worldPos.x >= 0 &&
-            viewArea.y <= cc.winSize.height &&
-            worldPos.y >= 0
-        );
+        return (viewArea.x <= cc.winSize.width && worldPos.x >= 0 && viewArea.y <= cc.winSize.height && worldPos.y >= 0);
     }
 
-    /** GID既是下标也是渲染深度 */
     export function tileToGID(row: number, col: number, tiledX: number, tiledY: number) {
         return tiledY * row + tiledX;
     }
@@ -125,16 +116,43 @@ export module game {
         return resultSet;
     }
 
-    /** 两向量是否相交 */
+    /**
+     * 两向量是否相交
+     * @param line1 
+     * @param line2 
+     * @returns 
+     */
     export function isIntersect(line1: [number, number][], line2: [number, number][]): boolean {
         const [[x1, y1], [x2, y2]] = line1;
         const [[x3, y3], [x4, y4]] = line2;
-        // 计算向量叉积
         const crossProduct = ([x1, y1]: [number, number], [x2, y2]: [number, number]) => x1 * y2 - x2 * y1;
         const d1 = crossProduct([x2 - x1, y2 - y1], [x3 - x1, y3 - y1]);
         const d2 = crossProduct([x2 - x1, y2 - y1], [x4 - x1, y4 - y1]);
         const d3 = crossProduct([x4 - x3, y4 - y3], [x1 - x3, y1 - y3]);
         const d4 = crossProduct([x4 - x3, y4 - y3], [x2 - x3, y2 - y3]);
         return d1 * d2 < 0 && d3 * d4 < 0;
+    }
+
+    /**
+     * 路线是否在视野
+     * @returns 
+     */
+    export function isPathInView(viewVertices: cc.Vec2[], viewData: Map<number, cc.Vec2>, pathLine: [[number, number], [number, number]]): boolean {
+        const pointA = pathLine[0]
+        const pointB = pathLine[1]
+        const getGID = (point: [number, number]) => game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, point[0], point[1])
+        const pointAGID = getGID(pointA)
+        const pointBGID = getGID(pointB)
+        if (viewData.has(pointAGID) || viewData.has(pointBGID)) return true
+
+        const vec0 = viewVertices[0]
+        const vec1 = viewVertices[1]
+        const vec2 = viewVertices[2]
+        const vec3 = viewVertices[3]
+        let bool = game.isIntersect([game.mapModel.pathStart, game.mapModel.pathEnd], [[vec0.x, vec0.y], [vec3.x, vec3.y]])
+        if (!bool) {
+            bool = game.isIntersect([game.mapModel.pathStart, game.mapModel.pathEnd], [[vec1.x, vec1.y], [vec2.x, vec2.y]])
+        }
+        return bool
     }
 }
