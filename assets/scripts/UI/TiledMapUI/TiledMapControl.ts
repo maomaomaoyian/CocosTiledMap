@@ -36,7 +36,7 @@ export class TiledMapControl extends cc.Component {
     private target: cc.Node | null = null;
     /** 是否在滑动 */
     private isMoving: boolean = false;
-    /** 位置寄存 */
+    /** 偏移寄存器 */
     private dir: cc.Vec3 = new cc.Vec3();
     /** 地图像素宽度 */
     private pixelWidth: number = 0;
