@@ -181,7 +181,7 @@ export class TiledMapControl extends cc.Component {
         if (!game.VIEW_REALTIME && this.viewVertices.length) return
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordView()
-        this.drawDiagonalLines()
+        this.drawDiagonalLines(this.viewVertices, cc.Color.YELLOW)
         this.showDataView()
     }
 
@@ -189,8 +189,8 @@ export class TiledMapControl extends cc.Component {
         if (!game.VIEW_REALTIME && this.previewVertices.length) return
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordPreview()
-        // this.drawDiagonalLines()
-        // this.showDataView()
+        this.drawDiagonalLines(this.previewVertices, cc.Color.BLACK)
+        this.showDataPreview()
     }
 
     private justShowView(viewData: cc.Vec3[]) {
@@ -285,6 +285,14 @@ export class TiledMapControl extends cc.Component {
         let viewDelData = Array.from(this.viewDeleteTiles.values())
         this.justShowView(viewDelData)
         let viewAddData = Array.from(this.viewAdditionTiles.values())
+        this.showView(viewAddData)
+    }
+
+    private showDataPreview() {
+        if (!game.DEV) return
+        let viewDelData = Array.from(this.previewDeleteTiles.values())
+        this.justShowView(viewDelData)
+        let viewAddData = Array.from(this.previewAdditionTiles.values())
         this.showView(viewAddData)
     }
 
@@ -446,9 +454,8 @@ export class TiledMapControl extends cc.Component {
         this.target = null
     }
 
-    private drawDiagonalLines() {
+    private drawDiagonalLines(viewVertices: cc.Vec3[], color: cc.Color) {
         if (!game.DEV) return
-        let viewVertices = game.mapModel.viewVertices
         let vec0 = game.map_data_ins.tileToPixel(viewVertices[0].x, viewVertices[0].y)
         let vec1 = game.map_data_ins.tileToPixel(viewVertices[1].x, viewVertices[1].y)
         let vec2 = game.map_data_ins.tileToPixel(viewVertices[2].x, viewVertices[2].y)
@@ -459,7 +466,7 @@ export class TiledMapControl extends cc.Component {
         if (!diagonalNode.parent) diagonalNode.parent = node;
         let graphics = diagonalNode.getComponent(cc.Graphics) || diagonalNode.addComponent(cc.Graphics);
         graphics.clear();
-        graphics.strokeColor = cc.Color.YELLOW;
+        graphics.strokeColor = color;
         graphics.lineWidth = 5;
 
         graphics.moveTo(vec0.x, vec0.y);
