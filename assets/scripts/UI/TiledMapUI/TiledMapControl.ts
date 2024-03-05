@@ -102,14 +102,16 @@ export class TiledMapControl extends cc.Component {
         this.target = node
     }
 
+    setMapByTile(tileX: number, tileY: number) {
+        let pos = game.map_data_ins.tileToPixel(tileX, tileY)
+        pos.x = -this.target.position.x * this.node.scale;
+        pos.y = -this.target.position.y * this.node.scale;
+        this.setMapByPos(pos)
+    }
+
     setMapByPos(pos: cc.Vec3) {
         pos = this.checkPos(pos);
         this.node!.position = pos;
-    }
-
-    setMapByTile(tileX: number, tileY: number) {
-        let pos = game.map_data_ins.tileToPixel(tileX, tileY)
-        this.setMapByPos(pos)
     }
 
     lateUpdate(dt: number) {
