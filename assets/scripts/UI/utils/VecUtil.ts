@@ -32,14 +32,12 @@ export class VecUtil {
         return pStart.multiplyScalar(1 - t).add(pEnd.multiplyScalar(t));
     }
 
-    static calculateAngleByVec2(v1: cc.Vec2, v2: cc.Vec2): number {
-        const deltaX = v2.x - v1.x;
-        const deltaY = v2.y - v1.y;
-        const angleInRadians = Math.atan2(deltaY, deltaX);
-        const angleInDegrees = angleInRadians * (180 / Math.PI);
-        return angleInDegrees;
-    }
-
+    /**
+     * 计算两点角度
+     * @param v1 
+     * @param v2 
+     * @returns 
+     */
     static calculateAngleByVec3(v1: cc.Vec3, v2: cc.Vec3): number {
         // 将向量转换为单位向量
         const unitV1 = v1.normalize();
@@ -51,5 +49,34 @@ export class VecUtil {
         // 将弧度值转换为角度值
         const angleInDegrees = angleInRadians * (180 / Math.PI);
         return angleInDegrees;
+    }
+
+    /**
+     * 计算两点角度
+     * @param v1 
+     * @param v2 
+     * @returns 
+     */
+    static calculateAngleByVec2(v1: cc.Vec2, v2: cc.Vec2): number {
+        const deltaX = v2.x - v1.x;
+        const deltaY = v2.y - v1.y;
+        const angleInRadians = Math.atan2(deltaY, deltaX);
+        const angleInDegrees = angleInRadians * (180 / Math.PI);
+        return angleInDegrees;
+    }
+
+    /**
+     * 计算一个点偏移指定角度距离的另一个点
+     * @param v1 
+     * @param angle 
+     * @param distance 
+     * @returns 
+     */
+    static calcPointByVec2(v1: cc.Vec2, angle: number, distance: number): cc.Vec2 {
+        const angleRad = angle * Math.PI / 180;
+        let v2 = cc.Vec2.ZERO
+        v2.x = v1.x + Math.cos(angleRad) * distance;
+        v2.y = v1.y + Math.sin(angleRad) * distance;
+        return v2;
     }
 }
