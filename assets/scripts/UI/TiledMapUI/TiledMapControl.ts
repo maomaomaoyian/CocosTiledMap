@@ -51,9 +51,11 @@ export class TiledMapControl extends cc.Component {
     private inertiaStart!: cc.Vec2;
     private inertiaVector: cc.Vec3 = new cc.Vec3();
 
-    /** --- 视野数据 --- */
+    /** --- 视野可视 --- */
     private labelNodePool: cc.Node[] = []
     private lightTileLabel: Map<string, cc.Node>
+
+    /** --- 真实视野 --- */
     private viewLastCenterTile: cc.Vec3
     private viewLastCenterPos: cc.Vec3
     private viewVertices: cc.Vec3[] = []
@@ -61,6 +63,8 @@ export class TiledMapControl extends cc.Component {
     private viewDeleteTiles: Map<number, cc.Vec3> = new Map()
     private viewAdditionTiles: Map<number, cc.Vec3> = new Map()
     private viewChangeTiles: Map<number, cc.Vec3> = new Map()
+
+    /** --- 预处理视野 --- */
     private previewLastCenterTile: cc.Vec3
     private previewLastCenterPos: cc.Vec3
     private previewVertices: cc.Vec3[] = []
@@ -183,7 +187,6 @@ export class TiledMapControl extends cc.Component {
         if (!game.VIEW_REALTIME && this.viewVertices.length) return
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordView()
-        this.drawDiagonalLines(this.viewVertices, cc.Color.YELLOW)
         this.showDataView()
     }
 
@@ -191,46 +194,7 @@ export class TiledMapControl extends cc.Component {
         if (!game.VIEW_REALTIME && this.previewVertices.length) return
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordPreview()
-        this.drawDiagonalLines(this.previewVertices, cc.Color.BLACK)
         this.showDataPreview()
-    }
-
-    private justShowView(viewData: cc.Vec3[]) {
-        do {
-            let tile = viewData.pop()
-            if (!tile) continue
-            let name = `${tile.x}_${tile.y}`
-            this.pushLabel(this.lightTileLabel.get(name))
-            this.lightTileLabel.delete(name)
-        } while (viewData.length > 0);
-    }
-
-    private getLabelNode(tile: cc.Vec3): cc.Node {
-        let node = this.labelNodePool.pop()
-        let label: cc.Label;
-        let name = `${tile.x}_${tile.y}`;
-        if (!node) {
-            node = new cc.Node(name)
-            label = node.addComponent(cc.Label)
-            label.fontSize = 15
-            label.verticalAlign = cc.Label.VerticalAlign.CENTER
-        }
-        else {
-            node.active = true
-            label = node.getComponent(cc.Label)
-        }
-        label.string = `${name}`
-        node.color = tile.z ? cc.Color.RED : cc.Color.BLUE
-        node.parent = this.node
-        let pos = game.map_data_ins.tileToPixel(tile.x, tile.y)
-        node.setPosition(pos)
-        return node
-    }
-
-    private pushLabel(node: cc.Node) {
-        if (!cc.isValid(node)) return
-        node.active = false
-        this.labelNodePool.push(node)
     }
 
     private recordView() {
@@ -285,18 +249,32 @@ export class TiledMapControl extends cc.Component {
 
     private showDataView() {
         if (!game.DEV) return
-        let viewDelData = Array.from(this.viewDeleteTiles.values())
-        this.justShowView(viewDelData)
-        let viewAddData = Array.from(this.viewAdditionTiles.values())
-        this.showView(viewAddData)
+        this.justShowView(Array.from(this.viewDeleteTiles.values()))
+        this.showView(Array.from(this.viewAdditionTiles.values()))
+        this.drawDiagonalLines(this.viewVertices, cc.Color.YELLOW)
     }
 
     private showDataPreview() {
         if (!game.DEV) return
-        let viewDelData = Array.from(this.previewDeleteTiles.values())
-        this.justShowView(viewDelData)
-        let viewAddData = Array.from(this.previewAdditionTiles.values())
-        this.showView(viewAddData)
+        this.justShowView(Array.from(this.previewDeleteTiles.values()))
+        this.showView(Array.from(this.previewAdditionTiles.values()))
+        this.drawDiagonalLines(this.previewVertices, cc.Color.BLACK)
+    }
+
+    private justShowView(viewData: cc.Vec3[]) {
+        do {
+            let tile = viewData.pop()
+            if (!tile) continue
+            let name = `${tile.x}_${tile.y}`
+            this.pushLabel(this.lightTileLabel.get(name))
+            this.lightTileLabel.delete(name)
+        } while (viewData.length > 0);
+    }
+
+    private pushLabel(node: cc.Node) {
+        if (!cc.isValid(node)) return
+        node.active = false
+        this.labelNodePool.push(node)
     }
 
     private showView(viewData: cc.Vec3[]) {
@@ -305,6 +283,49 @@ export class TiledMapControl extends cc.Component {
             let node = this.getLabelNode(tile)
             this.lightTileLabel.set(name, node)
         });
+    }
+
+    private getLabelNode(tile: cc.Vec3): cc.Node {
+        let node = this.labelNodePool.pop()
+        let label: cc.Label;
+        let name = `${tile.x}_${tile.y}`;
+        if (!node) {
+            node = new cc.Node(name)
+            label = node.addComponent(cc.Label)
+            label.fontSize = 15
+            label.verticalAlign = cc.Label.VerticalAlign.CENTER
+        }
+        else {
+            node.active = true
+            label = node.getComponent(cc.Label)
+        }
+        label.string = `${name}`
+        node.color = tile.z ? cc.Color.RED : cc.Color.BLUE
+        node.parent = this.node
+        let pos = game.map_data_ins.tileToPixel(tile.x, tile.y)
+        node.setPosition(pos)
+        return node
+    }
+
+    private drawDiagonalLines(viewVertices: cc.Vec3[], color: cc.Color) {
+        let vec0 = game.map_data_ins.tileToPixel(viewVertices[0].x, viewVertices[0].y)
+        let vec1 = game.map_data_ins.tileToPixel(viewVertices[1].x, viewVertices[1].y)
+        let vec2 = game.map_data_ins.tileToPixel(viewVertices[2].x, viewVertices[2].y)
+        let vec3 = game.map_data_ins.tileToPixel(viewVertices[3].x, viewVertices[3].y)
+
+        let node = this.node;
+        let diagonalNode = node.getChildByName("diagonalNode") || new cc.Node("diagonalNode");
+        if (!diagonalNode.parent) diagonalNode.parent = node;
+        let graphics = diagonalNode.getComponent(cc.Graphics) || diagonalNode.addComponent(cc.Graphics);
+        graphics.clear();
+        graphics.strokeColor = color;
+        graphics.lineWidth = 5;
+
+        graphics.moveTo(vec0.x, vec0.y);
+        graphics.lineTo(vec3.x, vec3.y);
+        graphics.moveTo(vec1.x, vec1.y);
+        graphics.lineTo(vec2.x, vec2.y);
+        graphics.stroke();
     }
 
     private addEvent(): void {
@@ -457,25 +478,4 @@ export class TiledMapControl extends cc.Component {
         this.target = null
     }
 
-    private drawDiagonalLines(viewVertices: cc.Vec3[], color: cc.Color) {
-        if (!game.DEV) return
-        let vec0 = game.map_data_ins.tileToPixel(viewVertices[0].x, viewVertices[0].y)
-        let vec1 = game.map_data_ins.tileToPixel(viewVertices[1].x, viewVertices[1].y)
-        let vec2 = game.map_data_ins.tileToPixel(viewVertices[2].x, viewVertices[2].y)
-        let vec3 = game.map_data_ins.tileToPixel(viewVertices[3].x, viewVertices[3].y)
-
-        let node = this.node;
-        let diagonalNode = node.getChildByName("diagonalNode") || new cc.Node("diagonalNode");
-        if (!diagonalNode.parent) diagonalNode.parent = node;
-        let graphics = diagonalNode.getComponent(cc.Graphics) || diagonalNode.addComponent(cc.Graphics);
-        graphics.clear();
-        graphics.strokeColor = color;
-        graphics.lineWidth = 5;
-
-        graphics.moveTo(vec0.x, vec0.y);
-        graphics.lineTo(vec3.x, vec3.y);
-        graphics.moveTo(vec1.x, vec1.y);
-        graphics.lineTo(vec2.x, vec2.y);
-        graphics.stroke();
-    }
 }
