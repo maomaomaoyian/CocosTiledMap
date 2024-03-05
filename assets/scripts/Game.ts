@@ -93,7 +93,7 @@ export module game {
     }
 
     export function GIDToTild(row: number, col: number, gid: number) {
-        return cc.v3(gid % row, gid / row);
+        return cc.v3(gid % row, Math.floor(gid / row));
     }
 
     export function isOutIndex(row: number, col: number, tiledX: number, tiledY: number) {

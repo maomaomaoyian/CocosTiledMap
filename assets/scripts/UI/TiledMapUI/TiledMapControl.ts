@@ -226,6 +226,7 @@ export class TiledMapControl extends cc.Component {
     }
 
     private pushLabel(node: cc.Node) {
+        if (!cc.isValid(node)) return
         node.active = false
         this.labelNodePool.push(node)
     }
