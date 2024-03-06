@@ -10,8 +10,10 @@ import { VecUtil } from "./UI/utils/VecUtil";
 
 const { ccclass } = cc._decorator;
 /**
- * @author panda
- * 注意：地图很大以1000x1000网格为例，加载tmx文件时同时加载tmx依赖的美术资源。这样减少卡顿
+ * @author 弱不禁风小书生
+ * 注意：
+ * 1.地图很大以1000x1000网格为例，加载tmx文件时同时加载tmx依赖的美术资源。这样减少卡顿
+ * 2.实时并非每帧处理，而是通过两个策略1.中心地块变化 2.距离上次位置变化超过一定范围
  */
 @ccclass
 export default class Game extends cc.Component {
@@ -46,32 +48,44 @@ export default class Game extends cc.Component {
 }
 
 export module game {
+    /** 地形层级 */
+    export enum Layer { BARRIER = "barrier", FLOOR = "floor" }
+
+
     export const util_vec = VecUtil
     export const util_queue = PriorityQueue
     export const road_astar = AStar
     export const road_apoint = APoint
-    export const mapModel = TiledMapModel.instance
     export type road_apoint = APoint
     export const map_control = TiledMapControl
     export type map_control = TiledMapControl
-    export const action_move = EntityMove
     export const map_data_ins = TiledMapData.instance
+    export const map_model = TiledMapModel.instance
+    export const action_move = EntityMove
 
-    /** 地形层级 */
-    export enum Layer { BARRIER = "barrier", FLOOR = "floor", }
-    /** 视野刷新粒度枚举 */
-    export enum VIEW_PARTICAL { TILE, PIXEL }
 
     /** 开发模式 */
     export const DEV = true
     /** 打印日志 */
     export const PRINT = true
+
+
     /** 视野范围 */
     export const VIEW = cc.winSize
-    /** 实时视野 */
-    export const VIEW_REALTIME = false
+    /** 视野实时计算视野坐标数据（false只在开始计算一次） */
+    export const VIEW_REALTIME_CALC = false
+    /** 视野开启网格坐标 */
+    export const VIEW_OPEN_SHOW_TILE: boolean = true
+    /** 视野开启色块填充 */
+    export const VIEW_OPEN_SHOW_FILL: boolean = true
+    /** 视野实时填充（false只在开始填充一次） */
+    export const VIEW_REALTIME_FILL: boolean = true
+    /** 视野刷新粒度枚举 */
+    export enum VIEW_PARTICAL { TILE, PIXEL }
     /** 视野更新精度 */
     export const VIEW_UPDATE_PARTICAL = VIEW_PARTICAL.TILE
+
+
     /** 房间横向跨度 */
     export const ROOM_ROW = 30
     /** 房间纵向跨度 */
@@ -80,6 +94,7 @@ export module game {
     export const PRESET_HEIGHT = 1000
     /** 房间预设宽度 */
     export const PRESET_WIDTH = 1000
+
 
     export function preview() {
         return cc.size(game.VIEW.width * 6, game.VIEW.height * 6)
@@ -159,9 +174,9 @@ export module game {
         const vec1 = viewVertices[1]
         const vec2 = viewVertices[2]
         const vec3 = viewVertices[3]
-        let bool = game.isIntersect([game.mapModel.pathStart, game.mapModel.pathEnd], [[vec0.x, vec0.y], [vec3.x, vec3.y]])
+        let bool = game.isIntersect([game.map_model.pathStart, game.map_model.pathEnd], [[vec0.x, vec0.y], [vec3.x, vec3.y]])
         if (!bool) {
-            bool = game.isIntersect([game.mapModel.pathStart, game.mapModel.pathEnd], [[vec1.x, vec1.y], [vec2.x, vec2.y]])
+            bool = game.isIntersect([game.map_model.pathStart, game.map_model.pathEnd], [[vec1.x, vec1.y], [vec2.x, vec2.y]])
         }
         return bool
     }

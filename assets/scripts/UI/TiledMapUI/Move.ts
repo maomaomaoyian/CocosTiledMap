@@ -1,7 +1,7 @@
 import { game } from "../../Game"
 
 /**
- * @author panda
+ * @author 弱不禁风小书生
  */
 export class EntityMove {
     private path: [number, number][]

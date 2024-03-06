@@ -1,7 +1,7 @@
 import { game } from "../../Game";
 
 /**
- * @author panda
+ * @author 弱不禁风小书生
  */
 const { ccclass } = cc._decorator;
 
@@ -72,7 +72,6 @@ export class TiledMapControl extends cc.Component {
     /** --- 安全范围 --- */
     private rectSafe: cc.Rect
     private rectFillRegister: Map<string, cc.Rect> = new Map()
-    private readonly rectFillOnce: boolean = true
 
     onLoad() {
         this.tiledmap = this.node.getComponent(cc.TiledMap)
@@ -395,7 +394,7 @@ export class TiledMapControl extends cc.Component {
     }
 
     private calcSquareView() {
-        if (!game.VIEW_REALTIME && this.viewVertices.length) return
+        if (!game.VIEW_REALTIME_CALC && this.viewVertices.length) return
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordView()
         this.showDataView()
@@ -404,7 +403,7 @@ export class TiledMapControl extends cc.Component {
     private recordView() {
         let vertices = game.getSquareVertices(this.canvasCenterToMap(), game.VIEW)
         this.viewVertices = vertices
-        game.mapModel.viewVertices = vertices
+        game.map_model.viewVertices = vertices
         let viewData = game.getSquareView(vertices)
         let lastViewData: Map<number, cc.Vec3> = this.viewMapData || new Map()
         let nextViewData: Map<number, cc.Vec3> = new Map()
@@ -428,6 +427,7 @@ export class TiledMapControl extends cc.Component {
 
     private showDataView() {
         if (!game.DEV) return
+        if (!game.VIEW_OPEN_SHOW_TILE) return
         this.justShowView(Array.from(this.viewDeleteTiles.values()))
         this.showView(Array.from(this.viewAdditionTiles.values()))
         this.drawDiagonalLines(this.viewVertices, cc.Color.YELLOW)
@@ -453,7 +453,7 @@ export class TiledMapControl extends cc.Component {
     }
 
     private calcSquarePreview() {
-        if (!game.VIEW_REALTIME && this.previewVertices.length) return
+        if (!game.VIEW_REALTIME_CALC && this.previewVertices.length) return
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordPreview()
         this.calcRectPreviewAndSafe()
@@ -487,6 +487,7 @@ export class TiledMapControl extends cc.Component {
 
     private showDataPreview() {
         if (!game.DEV) return
+        if (!game.VIEW_OPEN_SHOW_TILE) return
         this.justShowView(Array.from(this.previewDeleteTiles.values()))
         this.showView(Array.from(this.previewAdditionTiles.values()))
         this.drawDiagonalLines(this.previewVertices, cc.Color.BLACK)
@@ -529,7 +530,8 @@ export class TiledMapControl extends cc.Component {
 
     private fillRect(rect: cc.Rect, color: cc.Color, register: string) {
         if (!game.DEV) return
-        if (this.rectFillOnce) {
+        if (!game.VIEW_OPEN_SHOW_FILL) return
+        if (!game.VIEW_REALTIME_FILL) {
             if (this.rectFillRegister.has(register)) return
             this.rectFillRegister.set(register, rect)
         }

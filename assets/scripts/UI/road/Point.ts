@@ -1,5 +1,5 @@
 /**
- * @author panda
+ * @author 弱不禁风小书生
  */
 export class Point {
     private _x: number

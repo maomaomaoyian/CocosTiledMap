@@ -2,7 +2,7 @@ import { game } from "../../Game";
 const { ccclass } = cc._decorator;
 
 /**
- * @author panda
+ * @author 弱不禁风小书生
  */
 @ccclass
 export class TiledMapData {

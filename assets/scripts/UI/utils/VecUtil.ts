@@ -1,5 +1,5 @@
 /**
- * @author panda
+ * @author 弱不禁风小书生
  */
 export class VecUtil {
     static equals(pos1: cc.Vec3, pos2: cc.Vec3): boolean {

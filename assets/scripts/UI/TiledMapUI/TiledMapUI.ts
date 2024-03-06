@@ -1,7 +1,7 @@
 import { game } from "../../Game";
 
 /**
- * @author panda
+ * @author 弱不禁风小书生
  */
 const { ccclass } = cc._decorator;
 @ccclass
@@ -87,7 +87,7 @@ export default class TiledMapUI extends cc.Component {
         let sY = Number(startArr[1])
         let eX = Number(endArr[0])
         let eY = Number(endArr[1])
-        game.mapModel.pathStart = [sX, sY]
-        game.mapModel.pathEnd = [eX, eY]
+        game.map_model.pathStart = [sX, sY]
+        game.map_model.pathEnd = [eX, eY]
     }
 }
