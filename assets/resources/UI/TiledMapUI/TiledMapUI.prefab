@@ -3718,7 +3718,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 110,
+      "width": 12.85,
       "height": 27.72
     },
     "_anchorPoint": {
@@ -3770,8 +3770,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "屏幕中心：",
-    "_N$string": "屏幕中心：",
+    "_string": "",
+    "_N$string": "",
     "_fontSize": 22,
     "_lineHeight": 22,
     "_enableWrapText": true,
@@ -3878,8 +3878,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "触摸位置：",
-    "_N$string": "触摸位置：",
+    "_string": "",
+    "_N$string": "",
     "_fontSize": 22,
     "_lineHeight": 22,
     "_enableWrapText": true,

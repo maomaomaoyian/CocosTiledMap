@@ -457,7 +457,7 @@ export class TiledMapControl extends cc.Component {
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordPreview()
         this.calcRectPreviewAndSafe()
-        this.showDataPreview()
+        // this.showDataPreview()
     }
 
     private recordPreview() {

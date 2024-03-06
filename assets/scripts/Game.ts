@@ -73,13 +73,13 @@ export module game {
     /** 视野范围 */
     export const VIEW = cc.winSize
     /** 视野实时计算视野坐标数据（false只在开始计算一次） */
-    export const VIEW_REALTIME_CALC = false
+    export const VIEW_REALTIME_CALC = true
     /** 视野开启网格坐标 */
     export const VIEW_OPEN_SHOW_TILE: boolean = true
-    /** 视野开启色块填充 */
+    /** 视野开启色块填充 1.黑色屏幕视野 2.绿色安全范围 3.黄色是边界 */
     export const VIEW_OPEN_SHOW_FILL: boolean = true
     /** 视野实时填充（false只在开始填充一次） */
-    export const VIEW_REALTIME_FILL: boolean = true
+    export const VIEW_REALTIME_FILL: boolean = false
     /** 视野刷新粒度枚举 */
     export enum VIEW_PARTICAL { TILE, PIXEL }
     /** 视野更新精度 */
