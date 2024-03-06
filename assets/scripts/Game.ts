@@ -69,7 +69,7 @@ export module game {
     /** 视野范围 */
     export const VIEW = cc.winSize
     /** 实时视野 */
-    export const VIEW_REALTIME = true
+    export const VIEW_REALTIME = false
     /** 视野更新精度 */
     export const VIEW_UPDATE_PARTICAL = VIEW_PARTICAL.TILE
     /** 房间横向跨度 */

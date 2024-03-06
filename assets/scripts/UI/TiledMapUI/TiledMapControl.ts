@@ -398,7 +398,7 @@ export class TiledMapControl extends cc.Component {
         if (!game.VIEW_REALTIME && this.viewVertices.length) return
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordView()
-        // this.showDataView()
+        this.showDataView()
     }
 
     private recordView() {
@@ -457,7 +457,7 @@ export class TiledMapControl extends cc.Component {
         if (!this.lightTileLabel) this.lightTileLabel = new Map()
         this.recordPreview()
         this.calcRectPreviewAndSafe()
-        // this.showDataPreview()
+        this.showDataPreview()
     }
 
     private recordPreview() {
