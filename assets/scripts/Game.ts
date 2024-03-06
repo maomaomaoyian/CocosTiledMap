@@ -120,6 +120,12 @@ export module game {
         return resultSet;
     }
 
+    export function calcTowVerticesDis(vertexA: cc.Vec3, vertexB: cc.Vec3): number {
+        let vertexAPos = game.map_data_ins.tileToPixel(vertexA.x, vertexA.y)
+        let vertexBPos = game.map_data_ins.tileToPixel(vertexB.x, vertexB.y)
+        return game.util_vec.distance(vertexAPos, vertexBPos)
+    }
+
     /**
      * 两向量是否相交
      * @param line1 

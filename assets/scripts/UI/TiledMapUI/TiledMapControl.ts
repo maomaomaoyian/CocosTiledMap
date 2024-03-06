@@ -514,12 +514,15 @@ export class TiledMapControl extends cc.Component {
         let preview = game.preview()
         let left_down_tile = this.previewVertices[2]
         let rectPreviewPos = game.map_data_ins.tileToPixel(left_down_tile.x, left_down_tile.y)
-        let rectPreview = new cc.Rect(rectPreviewPos.x, rectPreviewPos.y, preview.width, preview.height)
+        let rectPreviewWidth = game.calcTowVerticesDis(this.previewVertices[0], this.previewVertices[1])
+        let rectPreviewHieght = game.calcTowVerticesDis(this.previewVertices[0], this.previewVertices[2])
+        let rectPreview = new cc.Rect(rectPreviewPos.x, rectPreviewPos.y, rectPreviewWidth, rectPreviewHieght)
         this.fillRect(rectPreview, cc.Color.YELLOW, "previewRect")
+
         const rectWidth = game.VIEW.width
         const rectHeight = game.VIEW.height
         let rectSafePos = rectPreviewPos.add(cc.v3(rectWidth, rectHeight))
-        let rectSafe = new cc.Rect(rectSafePos.x, rectSafePos.y, preview.width - rectWidth * 2, preview.height - rectHeight * 2)
+        let rectSafe = new cc.Rect(rectSafePos.x, rectSafePos.y, rectPreviewWidth - rectWidth * 2, rectPreviewHieght - rectHeight * 2)
         this.fillRect(rectSafe, cc.Color.GREEN, "safeRect")
         this.rectSafe = rectSafe
     }
