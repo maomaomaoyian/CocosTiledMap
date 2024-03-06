@@ -9,10 +9,6 @@ const { ccclass } = cc._decorator;
 const LIMIT_MIN_SCALE: number = 1;
 /** 地图最大缩放 */
 const LIMIT_MAX_SCALE: number = 2;
-/** 地图扩展宽度 */
-const EXTEND_WIDTH = 0;
-/** 地图扩展高度 */
-const EXTEND_HEIGHT = 0;
 /** 更新粒度 */
 const PARTICAL = 0.01;
 /** 触发时间间隔（ms） */
@@ -73,12 +69,17 @@ export class TiledMapControl extends cc.Component {
     private previewAdditionTiles: Map<number, cc.Vec3> = new Map()
     private previewChangeTiles: Map<number, cc.Vec3> = new Map()
 
+    /** --- 安全范围 --- */
+    private rectSafe: cc.Rect
+    private rectFillRegister: Map<string, cc.Rect> = new Map()
+    private readonly rectFillOnce: boolean = true
+
     onLoad() {
         this.tiledmap = this.node.getComponent(cc.TiledMap)
         this.nodeParent = this.node.parent!;
         var mapSize = this.tiledmap.node.getContentSize()
-        this.pixelWidth = mapSize.width + EXTEND_WIDTH;
-        this.pixelHeight = mapSize.height + EXTEND_HEIGHT;
+        this.pixelWidth = mapSize.width;
+        this.pixelHeight = mapSize.height;
         this.addEvent();
         this.onSingleTouch = (clickPos: cc.Vec3) => {
             let tile = game.map_data_ins.pixelToTile(clickPos)
@@ -86,7 +87,14 @@ export class TiledMapControl extends cc.Component {
             window["Game"].tiledMapUI.updateTouchLab(tileCenter)
         }
 
-        this.setMapByPos(cc.v3())
+        this.setHomePos()
+        this.calcViewData()
+        this.calcPreviewData()
+    }
+
+    setHomePos() {
+        let homeTile = cc.v2(100, 100)
+        this.setMapByTile(homeTile.x, homeTile.y)
     }
 
     getScreenPosToMapPos(event: cc.Event.EventTouch): cc.Vec3 {
@@ -108,8 +116,8 @@ export class TiledMapControl extends cc.Component {
 
     setMapByTile(tileX: number, tileY: number) {
         let pos = game.map_data_ins.tileToPixel(tileX, tileY)
-        pos.x = -this.target.position.x * this.node.scale;
-        pos.y = -this.target.position.y * this.node.scale;
+        pos.x = -pos.x * this.node.scale;
+        pos.y = -pos.y * this.node.scale;
         this.setMapByPos(pos)
     }
 
@@ -140,127 +148,6 @@ export class TiledMapControl extends cc.Component {
         this.calcViewData()
     }
 
-    private calcViewData() {
-        const canvasCenterPos = this.canvasCenterToMap()
-        if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
-            let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
-            if (!this.viewLastCenterTile || !this.viewLastCenterTile.equals(tile)) {
-                this.viewLastCenterTile = tile
-                let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
-                this.calcSquareView()
-                window["Game"].tiledMapUI.updateCenterLab(tileCenter)
-                game.PRINT && console.error("视野触发计算01")
-            }
-        }
-        else if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.PIXEL) {
-            if (!this.viewLastCenterPos || !this.viewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
-                this.viewLastCenterPos = canvasCenterPos
-                let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
-                let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
-                this.calcSquareView()
-                window["Game"].tiledMapUI.updateCenterLab(tileCenter)
-                game.PRINT && console.error("视野触发计算02")
-            }
-        }
-    }
-
-    private calcPreviewData() {
-        const canvasCenterPos = this.canvasCenterToMap()
-        if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
-            let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
-            if (!this.previewLastCenterTile || !this.previewLastCenterTile.equals(tile)) {
-                this.previewLastCenterTile = tile
-                this.calcSquarePreview()
-                game.PRINT && console.error("（预）视野触发计算01")
-            }
-        }
-        else if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.PIXEL) {
-            if (!this.previewLastCenterPos || !this.previewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
-                this.previewLastCenterPos = canvasCenterPos
-                this.calcSquarePreview()
-                game.PRINT && console.error("（预）视野触发计算02")
-            }
-        }
-    }
-
-    private calcSquareView() {
-        if (!game.VIEW_REALTIME && this.viewVertices.length) return
-        if (!this.lightTileLabel) this.lightTileLabel = new Map()
-        this.recordView()
-        this.showDataView()
-    }
-
-    private calcSquarePreview() {
-        if (!game.VIEW_REALTIME && this.previewVertices.length) return
-        if (!this.lightTileLabel) this.lightTileLabel = new Map()
-        this.recordPreview()
-        this.showDataPreview()
-    }
-
-    private recordView() {
-        let vertices = game.getSquareVertices(this.canvasCenterToMap(), game.VIEW)
-        this.viewVertices = vertices
-        game.mapModel.viewVertices = vertices
-        let viewData = game.getSquareView(vertices)
-        let lastViewData: Map<number, cc.Vec3> = this.viewMapData || new Map()
-        let nextViewData: Map<number, cc.Vec3> = new Map()
-        this.viewMapData = new Map()
-        for (let index = 0; index < viewData.length; index++) {
-            const tile = viewData[index];
-            let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
-            this.viewMapData.set(gid, tile)
-            if (lastViewData.has(gid)) {
-                lastViewData.delete(gid)
-            }
-            else {
-                nextViewData.set(gid, tile)
-            }
-        }
-        this.viewDeleteTiles = lastViewData
-        this.viewAdditionTiles = nextViewData
-        const mergedMap = game.mergeMaps(lastViewData, nextViewData);
-        this.viewChangeTiles = mergedMap
-    }
-
-    private recordPreview() {
-        let vertices = game.getSquareVertices(this.canvasCenterToMap(), cc.size(game.VIEW.width * 3, game.VIEW.height * 3))
-        this.previewVertices = vertices
-        if (!game.DEV) return
-        let viewData = game.getSquareView(vertices)
-        let lastViewData: Map<number, cc.Vec3> = this.previewMapData || new Map()
-        let nextViewData: Map<number, cc.Vec3> = new Map()
-        this.previewMapData = new Map()
-        for (let index = 0; index < viewData.length; index++) {
-            const tile = viewData[index];
-            let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
-            this.previewMapData.set(gid, tile)
-            if (lastViewData.has(gid)) {
-                lastViewData.delete(gid)
-            }
-            else {
-                nextViewData.set(gid, tile)
-            }
-        }
-        this.previewDeleteTiles = lastViewData
-        this.previewAdditionTiles = nextViewData
-        const mergedMap = game.mergeMaps(lastViewData, nextViewData);
-        this.previewChangeTiles = mergedMap
-    }
-
-    private showDataView() {
-        if (!game.DEV) return
-        this.justShowView(Array.from(this.viewDeleteTiles.values()))
-        this.showView(Array.from(this.viewAdditionTiles.values()))
-        this.drawDiagonalLines(this.viewVertices, cc.Color.YELLOW)
-    }
-
-    private showDataPreview() {
-        if (!game.DEV) return
-        this.justShowView(Array.from(this.previewDeleteTiles.values()))
-        this.showView(Array.from(this.previewAdditionTiles.values()))
-        this.drawDiagonalLines(this.previewVertices, cc.Color.BLACK)
-    }
-
     private justShowView(viewData: cc.Vec3[]) {
         do {
             let tile = viewData.pop()
@@ -269,63 +156,6 @@ export class TiledMapControl extends cc.Component {
             this.pushLabel(this.lightTileLabel.get(name))
             this.lightTileLabel.delete(name)
         } while (viewData.length > 0);
-    }
-
-    private pushLabel(node: cc.Node) {
-        if (!cc.isValid(node)) return
-        node.active = false
-        this.labelNodePool.push(node)
-    }
-
-    private showView(viewData: cc.Vec3[]) {
-        viewData.forEach(tile => {
-            let name = `${tile.x}_${tile.y}`
-            let node = this.getLabelNode(tile)
-            this.lightTileLabel.set(name, node)
-        });
-    }
-
-    private getLabelNode(tile: cc.Vec3): cc.Node {
-        let node = this.labelNodePool.pop()
-        let label: cc.Label;
-        let name = `${tile.x}_${tile.y}`;
-        if (!node) {
-            node = new cc.Node(name)
-            label = node.addComponent(cc.Label)
-            label.fontSize = 15
-            label.verticalAlign = cc.Label.VerticalAlign.CENTER
-        }
-        else {
-            node.active = true
-            label = node.getComponent(cc.Label)
-        }
-        label.string = `${name}`
-        node.color = tile.z ? cc.Color.RED : cc.Color.BLUE
-        node.parent = this.node
-        let pos = game.map_data_ins.tileToPixel(tile.x, tile.y)
-        node.setPosition(pos)
-        return node
-    }
-
-    private drawDiagonalLines(viewVertices: cc.Vec3[], color: cc.Color) {
-        let vec0 = game.map_data_ins.tileToPixel(viewVertices[0].x, viewVertices[0].y)
-        let vec1 = game.map_data_ins.tileToPixel(viewVertices[1].x, viewVertices[1].y)
-        let vec2 = game.map_data_ins.tileToPixel(viewVertices[2].x, viewVertices[2].y)
-        let vec3 = game.map_data_ins.tileToPixel(viewVertices[3].x, viewVertices[3].y)
-
-        let node = this.node;
-        let diagonalNode = node.getChildByName("diagonalNode") || new cc.Node("diagonalNode");
-        if (!diagonalNode.parent) diagonalNode.parent = node;
-        let graphics = diagonalNode.getComponent(cc.Graphics) || diagonalNode.addComponent(cc.Graphics);
-        graphics.clear();
-        graphics.strokeColor = color;
-        graphics.lineWidth = 5;
-
-        graphics.moveTo(vec0.x, vec0.y);
-        graphics.lineTo(vec3.x, vec3.y);
-        graphics.moveTo(vec1.x, vec1.y);
-        graphics.lineTo(vec2.x, vec2.y);
-        graphics.stroke();
     }
 
     private addEvent(): void {
@@ -409,7 +239,10 @@ export class TiledMapControl extends cc.Component {
 
             this.reset();
 
-            this.calcPreviewData()
+            let bool = this.checkRectSafe()
+            if (!bool) {
+                this.calcPreviewData()
+            }
         }
     }
 
@@ -478,4 +311,231 @@ export class TiledMapControl extends cc.Component {
         this.target = null
     }
 
+
+    /** --- 视野可视 --- */
+    private pushLabel(node: cc.Node) {
+        if (!cc.isValid(node)) return
+        node.active = false
+        this.labelNodePool.push(node)
+    }
+
+    private showView(viewData: cc.Vec3[]) {
+        viewData.forEach(tile => {
+            let name = `${tile.x}_${tile.y}`
+            let node = this.getLabelNode(tile)
+            this.lightTileLabel.set(name, node)
+        });
+    }
+
+    private getLabelNode(tile: cc.Vec3): cc.Node {
+        let node = this.labelNodePool.pop()
+        let label: cc.Label;
+        let name = `${tile.x}_${tile.y}`;
+        if (!node) {
+            node = new cc.Node(name)
+            label = node.addComponent(cc.Label)
+            label.fontSize = 15
+            label.verticalAlign = cc.Label.VerticalAlign.CENTER
+        }
+        else {
+            node.active = true
+            label = node.getComponent(cc.Label)
+        }
+        label.string = `${name}`
+        node.color = tile.z ? cc.Color.RED : cc.Color.BLUE
+        node.parent = this.node
+        let pos = game.map_data_ins.tileToPixel(tile.x, tile.y)
+        node.setPosition(pos)
+        return node
+    }
+
+    private drawDiagonalLines(viewVertices: cc.Vec3[], color: cc.Color) {
+        let vec0 = game.map_data_ins.tileToPixel(viewVertices[0].x, viewVertices[0].y)
+        let vec1 = game.map_data_ins.tileToPixel(viewVertices[1].x, viewVertices[1].y)
+        let vec2 = game.map_data_ins.tileToPixel(viewVertices[2].x, viewVertices[2].y)
+        let vec3 = game.map_data_ins.tileToPixel(viewVertices[3].x, viewVertices[3].y)
+
+        let node = this.node;
+        let diagonalNode = node.getChildByName("diagonalNode") || new cc.Node("diagonalNode");
+        if (!diagonalNode.parent) diagonalNode.parent = node;
+        let graphics = diagonalNode.getComponent(cc.Graphics) || diagonalNode.addComponent(cc.Graphics);
+        graphics.clear();
+        graphics.strokeColor = color;
+        graphics.lineWidth = 5;
+
+        graphics.moveTo(vec0.x, vec0.y);
+        graphics.lineTo(vec3.x, vec3.y);
+        graphics.moveTo(vec1.x, vec1.y);
+        graphics.lineTo(vec2.x, vec2.y);
+        graphics.stroke();
+    }
+
+
+    /** --- 真实视野 --- */
+    private calcViewData() {
+        const canvasCenterPos = this.canvasCenterToMap()
+        if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
+            let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
+            if (!this.viewLastCenterTile || !this.viewLastCenterTile.equals(tile)) {
+                this.viewLastCenterTile = tile
+                let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
+                this.calcSquareView()
+                window["Game"].tiledMapUI.updateCenterLab(tileCenter)
+            }
+        }
+        else if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.PIXEL) {
+            if (!this.viewLastCenterPos || !this.viewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
+                this.viewLastCenterPos = canvasCenterPos
+                let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
+                let tileCenter = game.map_data_ins.tileToPixel(tile.x, tile.y)
+                this.calcSquareView()
+                window["Game"].tiledMapUI.updateCenterLab(tileCenter)
+            }
+        }
+    }
+
+    private calcSquareView() {
+        if (!game.VIEW_REALTIME && this.viewVertices.length) return
+        if (!this.lightTileLabel) this.lightTileLabel = new Map()
+        this.recordView()
+        // this.showDataView()
+    }
+
+    private recordView() {
+        let vertices = game.getSquareVertices(this.canvasCenterToMap(), game.VIEW)
+        this.viewVertices = vertices
+        game.mapModel.viewVertices = vertices
+        let viewData = game.getSquareView(vertices)
+        let lastViewData: Map<number, cc.Vec3> = this.viewMapData || new Map()
+        let nextViewData: Map<number, cc.Vec3> = new Map()
+        this.viewMapData = new Map()
+        for (let index = 0; index < viewData.length; index++) {
+            const tile = viewData[index];
+            let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
+            this.viewMapData.set(gid, tile)
+            if (lastViewData.has(gid)) {
+                lastViewData.delete(gid)
+            }
+            else {
+                nextViewData.set(gid, tile)
+            }
+        }
+        this.viewDeleteTiles = lastViewData
+        this.viewAdditionTiles = nextViewData
+        const mergedMap = game.mergeMaps(lastViewData, nextViewData);
+        this.viewChangeTiles = mergedMap
+    }
+
+    private showDataView() {
+        if (!game.DEV) return
+        this.justShowView(Array.from(this.viewDeleteTiles.values()))
+        this.showView(Array.from(this.viewAdditionTiles.values()))
+        this.drawDiagonalLines(this.viewVertices, cc.Color.YELLOW)
+    }
+
+
+    /** --- 预处理视野 --- */
+    private calcPreviewData() {
+        const canvasCenterPos = this.canvasCenterToMap()
+        if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
+            let tile = game.map_data_ins.pixelToTile(canvasCenterPos)
+            if (!this.previewLastCenterTile || !this.previewLastCenterTile.equals(tile)) {
+                this.previewLastCenterTile = tile
+                this.calcSquarePreview()
+            }
+        }
+        else if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.PIXEL) {
+            if (!this.previewLastCenterPos || !this.previewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
+                this.previewLastCenterPos = canvasCenterPos
+                this.calcSquarePreview()
+            }
+        }
+    }
+
+    private calcSquarePreview() {
+        if (!game.VIEW_REALTIME && this.previewVertices.length) return
+        if (!this.lightTileLabel) this.lightTileLabel = new Map()
+        this.recordPreview()
+        this.calcRectPreviewAndSafe()
+        // this.showDataPreview()
+    }
+
+    private recordPreview() {
+        let vertices = game.getSquareVertices(this.canvasCenterToMap(), game.preview())
+        this.previewVertices = vertices
+        if (!game.DEV) return
+        let viewData = game.getSquareView(vertices)
+        let lastViewData: Map<number, cc.Vec3> = this.previewMapData || new Map()
+        let nextViewData: Map<number, cc.Vec3> = new Map()
+        this.previewMapData = new Map()
+        for (let index = 0; index < viewData.length; index++) {
+            const tile = viewData[index];
+            let gid = game.tileToGID(game.map_data_ins.row, game.map_data_ins.col, tile.x, tile.y)
+            this.previewMapData.set(gid, tile)
+            if (lastViewData.has(gid)) {
+                lastViewData.delete(gid)
+            }
+            else {
+                nextViewData.set(gid, tile)
+            }
+        }
+        this.previewDeleteTiles = lastViewData
+        this.previewAdditionTiles = nextViewData
+        const mergedMap = game.mergeMaps(lastViewData, nextViewData);
+        this.previewChangeTiles = mergedMap
+    }
+
+    private showDataPreview() {
+        if (!game.DEV) return
+        this.justShowView(Array.from(this.previewDeleteTiles.values()))
+        this.showView(Array.from(this.previewAdditionTiles.values()))
+        this.drawDiagonalLines(this.previewVertices, cc.Color.BLACK)
+    }
+
+
+    /** --- 安全范围 --- */
+    private checkRectSafe(): boolean {
+        if (!this.rectSafe) return false
+        let rectScreen = this.calcRectScreen()
+        return this.rectSafe.containsRect(rectScreen)
+    }
+
+    private calcRectScreen(): cc.Rect {
+        const canvasCenterPos = this.canvasCenterToMap()
+        const rectWidth = game.VIEW.width
+        const rectHeight = game.VIEW.height
+        const rectPos = canvasCenterPos.sub(cc.v3(rectWidth / 2, rectHeight / 2))
+        const rect = new cc.Rect(rectPos.x, rectPos.y, rectWidth, rectHeight)
+        this.fillRect(rect, cc.Color.BLACK, "screenRect")
+        return rect
+    }
+
+    private calcRectPreviewAndSafe() {
+        let preview = game.preview()
+        let left_down_tile = this.previewVertices[2]
+        let rectPreviewPos = game.map_data_ins.tileToPixel(left_down_tile.x, left_down_tile.y)
+        let rectPreview = new cc.Rect(rectPreviewPos.x, rectPreviewPos.y, preview.width, preview.height)
+        this.fillRect(rectPreview, cc.Color.YELLOW, "previewRect")
+        const rectWidth = game.VIEW.width
+        const rectHeight = game.VIEW.height
+        let rectSafePos = rectPreviewPos.add(cc.v3(rectWidth, rectHeight))
+        let rectSafe = new cc.Rect(rectSafePos.x, rectSafePos.y, preview.width - rectWidth * 2, preview.height - rectHeight * 2)
+        this.fillRect(rectSafe, cc.Color.GREEN, "safeRect")
+        this.rectSafe = rectSafe
+    }
+
+    private fillRect(rect: cc.Rect, color: cc.Color, register: string) {
+        if (!game.DEV) return
+        if (this.rectFillOnce) {
+            if (this.rectFillRegister.has(register)) return
+            this.rectFillRegister.set(register, rect)
+        }
+        let node = this.node;
+        let registerNode = node.getChildByName(register) || new cc.Node(register);
+        if (!registerNode.parent) registerNode.parent = node;
+        let graphics = registerNode.getComponent(cc.Graphics) || registerNode.addComponent(cc.Graphics);
+        graphics.clear()
+        graphics.fillColor = color;
+        graphics.fillRect(rect.xMin, rect.yMin, rect.width, rect.height);
+    }
 }

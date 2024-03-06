@@ -81,6 +81,10 @@ export module game {
     /** 房间预设宽度 */
     export const PRESET_WIDTH = 1000
 
+    export function preview() {
+        return cc.size(game.VIEW.width * 6, game.VIEW.height * 6)
+    }
+
     export function isNodeInCamera(node: cc.Node): boolean {
         let camera = cc.find("Canvas").getChildByName("Main Camera").getComponent(cc.Camera);
         let worldPos = node.convertToWorldSpaceAR(cc.Vec3.ZERO);

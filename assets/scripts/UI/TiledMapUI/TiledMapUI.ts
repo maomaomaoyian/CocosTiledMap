@@ -20,6 +20,8 @@ export default class TiledMapUI extends cc.Component {
     public comp_control: game.map_control
 
     protected onLoad(): void {
+        window["Game"].tiledMapUI = this
+
         this.n_tiledMap = cc.find("n_tiledMap", this.node)
         this.n_center = cc.find("n_center", this.n_tiledMap)
         this.b_bind = cc.find("b_bind", this.node).getComponent(cc.Button)
@@ -35,8 +37,8 @@ export default class TiledMapUI extends cc.Component {
         this.e_endPos.string = "30,30"
         this.e_speed.string = "0.05"
 
-        this.comp_control = this.n_tiledMap.addComponent(game.map_control)
         game.map_data_ins.init(this.n_tiledMap)
+        this.comp_control = this.n_tiledMap.addComponent(game.map_control)
         this.onEvt()
     }
 
