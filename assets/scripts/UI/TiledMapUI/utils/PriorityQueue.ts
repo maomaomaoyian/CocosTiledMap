@@ -2,11 +2,10 @@
  * @author 弱不禁风小书生
  */
 export class PriorityQueue<T> {
-
     private data: T[]
     private compare: Function
 
-    constructor(compare) {
+    public constructor(compare) {
         if (typeof compare !== 'function') {
             throw new Error('compare function required!')
         }
@@ -14,7 +13,7 @@ export class PriorityQueue<T> {
         this.compare = compare
     }
 
-    search(elem: T): number {
+    private search(elem: T): number {
         let low = 0, high = this.data.length
         while (low < high) {
             let mid = low + ((high - low) >> 1)
@@ -28,29 +27,29 @@ export class PriorityQueue<T> {
         return low;
     }
 
-    push(elem: T): number {
+    public push(elem: T): number {
         let index = this.search(elem)
         this.data.splice(index, 0, elem)
         return this.data.length
     }
 
-    size(): number {
+    public size(): number {
         return this.data.length
     }
 
-    peek(): T {
+    public peek(): T {
         return this.data[0];
     }
 
-    getData(): T[] {
+    public getData(): T[] {
         return this.data
     }
 
-    delete(index: number) {
+    public delete(index: number) {
         this.data.splice(index, 1)
     }
 
-    clear() {
+    public clear() {
         this.data = []
     }
 }

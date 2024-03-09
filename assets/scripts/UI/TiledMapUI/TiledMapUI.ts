@@ -1,4 +1,4 @@
-import { game } from "../../Game";
+import { game } from "./Manager";
 
 /**
  * @author 弱不禁风小书生
@@ -19,8 +19,9 @@ export default class TiledMapUI extends cc.Component {
 
     public comp_control: game.map_control
 
-    protected onLoad(): void {
-        window["Game"].tiledMapUI = this
+    public onLoad(): void {
+        game.map_model.$TiledMapUI = this
+        game.map_model.clear()
 
         this.n_tiledMap = cc.find("n_tiledMap", this.node)
         this.n_center = cc.find("n_center", this.n_tiledMap)
@@ -32,31 +33,31 @@ export default class TiledMapUI extends cc.Component {
         this.b_findPath = cc.find("b_findPath", this.node).getComponent(cc.Button)
         this.l_center = cc.find("l_center", this.node).getComponent(cc.Label)
         this.l_touch = cc.find("l_touch", this.node).getComponent(cc.Label)
-
         this.e_startPos.string = "0,0"
         this.e_endPos.string = "30,30"
         this.e_speed.string = "0.05"
 
-        game.map_data_ins.init(this.n_tiledMap)
-        this.comp_control = this.n_tiledMap.addComponent(game.map_control)
+        game.map_data.init(this.n_tiledMap)
+        this.n_tiledMap.addComponent(game.map_control)
+
         this.onEvt()
     }
 
-    onEvt() {
+    private onEvt() {
         this.b_bind.node.on(cc.Node.EventType.TOUCH_END, this.onBind, this);
         this.b_unbind.node.on(cc.Node.EventType.TOUCH_END, this.onUnBind, this);
         this.b_findPath.node.on(cc.Node.EventType.TOUCH_END, this.onFindPath, this);
     }
 
-    onBind() {
-        this.comp_control.setTarget(this.n_center)
+    private onBind() {
+        game.map_model.$TiledMapControl.setTarget(this.n_center)
     }
 
-    onUnBind() {
-        this.comp_control.setTarget(null)
+    private onUnBind() {
+        game.map_model.$TiledMapControl.setTarget(null)
     }
 
-    onFindPath() {
+    private onFindPath() {
         let startArr = this.e_startPos.string.split(",")
         let endArr = this.e_endPos.string.split(",")
         let sX = Number(startArr[0])
@@ -64,30 +65,33 @@ export default class TiledMapUI extends cc.Component {
         let eX = Number(endArr[0])
         let eY = Number(endArr[1])
         let speed = Number(this.e_speed.string)
-        let path = game.map_data_ins.findPath(sX, sY, eX, eY)
+        let path = game.map_data.findPath(sX, sY, eX, eY)
         let moveClz = new game.action_move(path, this.n_center, speed)
         moveClz.run()
         this.onBind()
     }
 
-    updateTouchLab(pos: cc.Vec3) {
-        let tile = game.map_data_ins.pixelToTile(pos)
+    public updateTouchLab(pos: cc.Vec3) {
+        if (!game.DEV) return
+        let tile = game.map_data.pixelToTile(pos)
         this.l_touch.string = `屏幕触摸位置：${tile.x}_${tile.y} (${pos.x},${pos.y})`
     }
 
-    updateCenterLab(pos: cc.Vec3) {
-        let tile = game.map_data_ins.pixelToTile(pos)
+    public updateCenterLab(pos: cc.Vec3) {
+        if (!game.DEV) return
+        let tile = game.map_data.pixelToTile(pos)
         this.l_center.string = `屏幕中心位置：${tile.x}_${tile.y} (${pos.x},${pos.y})`
     }
 
-    update(dt: number): void {
+    public update(dt: number): void {
+        if (!game.DEV) return
         let startArr = this.e_startPos.string.split(",")
         let endArr = this.e_endPos.string.split(",")
         let sX = Number(startArr[0])
         let sY = Number(startArr[1])
         let eX = Number(endArr[0])
         let eY = Number(endArr[1])
-        game.map_model.pathStart = [sX, sY]
-        game.map_model.pathEnd = [eX, eY]
+        game.map_model.testPathStart = [sX, sY]
+        game.map_model.testPathEnd = [eX, eY]
     }
 }

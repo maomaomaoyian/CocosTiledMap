@@ -1,29 +1,27 @@
-import { game } from "../../Game"
+import { game } from "../Manager"
 
 /**
  * @author 弱不禁风小书生
  */
 export class AStar {
-    private openList = new game.util_queue<game.road_apoint>((a: game.road_apoint, b: game.road_apoint) => a.getF() - b.getF())
-    private openListMap: Map<number, game.road_apoint> = new Map()
-    private closeMap: Map<number, game.road_apoint> = new Map()
-    private barrier: Set<number> = new Set()
-
     private row: number
     private col: number
     private x8: boolean
 
-    private dest: game.road_apoint
-
-    private static readonly step = 10
-
-    constructor(row: number, col: number, x8: boolean) {
+    public constructor(row: number, col: number, x8: boolean) {
         this.x8 = x8
         this.row = row
         this.col = col
     }
 
-    findPath(sX: number, sY: number, eX: number, eY: number, barrier: Set<number>): [number, number][] {
+    private openList = new game.util_queue<game.road_apoint>((a: game.road_apoint, b: game.road_apoint) => a.getF() - b.getF())
+    private openListMap: Map<number, game.road_apoint> = new Map()
+    private closeMap: Map<number, game.road_apoint> = new Map()
+    private barrier: Set<number> = new Set()
+    private dest: game.road_apoint
+    private static readonly step = 10
+
+    public findPath(sX: number, sY: number, eX: number, eY: number, barrier: Set<number>): [number, number][] {
         const start = new game.road_apoint(sX, sY)
         const end = new game.road_apoint(eX, eY)
         this.barrier = barrier
@@ -98,22 +96,22 @@ export class AStar {
         return path
     }
 
-    openListPeek(): game.road_apoint {
+    private openListPeek(): game.road_apoint {
         return this.openList.peek()
     }
 
-    openListpush(ele: game.road_apoint) {
+    private openListpush(ele: game.road_apoint) {
         const gid = this.getGID(ele)
         this.openList.push(ele)
         this.openListMap.set(gid, ele)
     }
 
-    openListHas(ele: game.road_apoint): boolean {
+    private openListHas(ele: game.road_apoint): boolean {
         const gid = this.getGID(ele)
         return this.openListMap.has(gid)
     }
 
-    openListDelete(ele: game.road_apoint) {
+    private openListDelete(ele: game.road_apoint) {
         let idx = this.openListEleIndex(ele)
         if (idx === -1) return
         const gid = this.getGID(ele)
@@ -121,7 +119,7 @@ export class AStar {
         this.openListMap.delete(gid)
     }
 
-    openListEleIndex(ele: game.road_apoint): number {
+    private openListEleIndex(ele: game.road_apoint): number {
         const data = this.openList.getData()
         for (let index = 0; index < data.length; index++) {
             const one = data[index];
@@ -132,26 +130,26 @@ export class AStar {
         return -1
     }
 
-    getGID(ele: game.road_apoint) {
+    private getGID(ele: game.road_apoint) {
         return game.tileToGID(this.row, this.col, ele.getX(), ele.getY())
     }
 
-    isBarrier(ele: game.road_apoint): boolean {
+    private isBarrier(ele: game.road_apoint): boolean {
         if (ele.equals(this.dest)) return false
         const gid = this.getGID(ele)
         return this.barrier.has(gid)
     }
 
-    isOutIndex(ele: game.road_apoint): boolean {
+    private isOutIndex(ele: game.road_apoint): boolean {
         return game.isOutIndex(this.row, this.col, ele.getX(), ele.getY())
     }
 
-    calcH(cur: game.road_apoint, end: game.road_apoint): number {
+    private calcH(cur: game.road_apoint, end: game.road_apoint): number {
         let temp = Math.abs(cur.getX() - end.getX()) + Math.abs(cur.getY() - end.getY())
         return temp * AStar.step
     }
 
-    getNeighbors(ele: game.road_apoint): game.road_apoint[] {
+    private getNeighbors(ele: game.road_apoint): game.road_apoint[] {
         let arr = []
         const x = ele.getX()
         const y = ele.getY()

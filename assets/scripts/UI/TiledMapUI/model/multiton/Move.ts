@@ -1,4 +1,4 @@
-import { game } from "../../Game"
+import { game } from "../../Manager"
 
 /**
  * @author 弱不禁风小书生
@@ -9,17 +9,17 @@ export class EntityMove {
     private speed: number
     private isFirst: boolean = true
 
-    constructor(path, target, speed) {
+    public constructor(path, target, speed) {
         this.path = path
         this.target = target
         this.speed = speed
         this.target.stopAllActions()
     }
 
-    run() {
+    public run() {
         let peek = this.path.shift()
         if (!peek) return
-        let point = game.map_data_ins.tileToPixel(peek[0], peek[1])
+        let point = game.map_data.tileToPixel(peek[0], peek[1])
         cc.tween(this.target).to(this.isFirst ? 0 : this.speed, { position: point }).call(() => { this.isFirst = false; this.run(); }).start()
     }
 }

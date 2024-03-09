@@ -5,28 +5,28 @@ export class Point {
     private _x: number
     private _y: number
 
-    constructor(x: number, y: number) {
+    public constructor(x: number, y: number) {
         this._x = x
         this._y = y
     }
 
-    getX(): number {
+    public getX(): number {
         return this._x
     }
 
-    setX(x: number) {
+    public setX(x: number) {
         this._x = x
     }
 
-    getY(): number {
+    public getY(): number {
         return this._y
     }
 
-    setY(y: number) {
+    public setY(y: number) {
         this._y = y
     }
 
-    equals(o: Point) {
+    public equals(o: Point) {
         if (!o) return false
         return this.getX() === o.getX() && this.getY() === o.getY()
     }
@@ -38,39 +38,39 @@ export class APoint extends Point {
     private _f: number
     private _parent: APoint
 
-    constructor(x: number, y: number) {
+    public constructor(x: number, y: number) {
         super(x, y)
     }
 
-    getG(): number {
+    public getG(): number {
         return this._g
     }
 
-    setG(g: number) {
+    public setG(g: number) {
         this._g = g
     }
 
-    getH(): number {
+    public getH(): number {
         return this._h
     }
 
-    setH(h: number) {
+    public setH(h: number) {
         this._h = h
     }
 
-    getF(): number {
+    public getF(): number {
         return this._f
     }
 
-    setF(f: number) {
+    public setF(f: number) {
         this._f = f
     }
 
-    setParent(parent: APoint) {
+    public setParent(parent: APoint) {
         this._parent = parent
     }
 
-    getParent(): APoint {
+    public getParent(): APoint {
         return this._parent
     }
 }

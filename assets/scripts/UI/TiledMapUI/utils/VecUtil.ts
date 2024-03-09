@@ -2,7 +2,7 @@
  * @author 弱不禁风小书生
  */
 export class VecUtil {
-    static equals(pos1: cc.Vec3, pos2: cc.Vec3): boolean {
+    public static equals(pos1: cc.Vec3, pos2: cc.Vec3): boolean {
         if (pos1.x == pos2.x && pos1.y == pos2.y && pos1.z == pos2.z) {
             return true;
         }
@@ -10,15 +10,15 @@ export class VecUtil {
         return false;
     }
 
-    static distance(pos1: cc.Vec3, pos2: cc.Vec3): number {
+    public static distance(pos1: cc.Vec3, pos2: cc.Vec3): number {
         return cc.Vec3.distance(pos1, pos2);
     }
 
-    static lerp(posStart: cc.Vec3, posEnd: cc.Vec3, t: number): cc.Vec3 {
+    public static lerp(posStart: cc.Vec3, posEnd: cc.Vec3, t: number): cc.Vec3 {
         return this.bezierOne(t, posStart, posEnd);
     }
 
-    static bezierOne(t: number, posStart: cc.Vec3, posEnd: cc.Vec3): cc.Vec3 {
+    public static bezierOne(t: number, posStart: cc.Vec3, posEnd: cc.Vec3): cc.Vec3 {
         if (t > 1) {
             t = 1;
         }
@@ -38,7 +38,7 @@ export class VecUtil {
      * @param v2 
      * @returns 
      */
-    static calculateAngleByVec3(v1: cc.Vec3, v2: cc.Vec3): number {
+    public static calculateAngleByVec3(v1: cc.Vec3, v2: cc.Vec3): number {
         // 将向量转换为单位向量
         const unitV1 = v1.normalize();
         const unitV2 = v2.normalize();
@@ -57,7 +57,7 @@ export class VecUtil {
      * @param v2 
      * @returns 
      */
-    static calculateAngleByVec2(v1: cc.Vec2, v2: cc.Vec2): number {
+    public static calculateAngleByVec2(v1: cc.Vec2, v2: cc.Vec2): number {
         const deltaX = v2.x - v1.x;
         const deltaY = v2.y - v1.y;
         const angleInRadians = Math.atan2(deltaY, deltaX);
@@ -72,7 +72,7 @@ export class VecUtil {
      * @param distance 
      * @returns 
      */
-    static calcPointByVec2(v1: cc.Vec2, angle: number, distance: number): cc.Vec2 {
+    public static calcPointByVec2(v1: cc.Vec2, angle: number, distance: number): cc.Vec2 {
         const angleRad = angle * Math.PI / 180;
         let v2 = cc.Vec2.ZERO
         v2.x = v1.x + Math.cos(angleRad) * distance;
