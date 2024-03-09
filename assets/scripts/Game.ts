@@ -87,9 +87,9 @@ export module game {
 
 
     /** 房间横向跨度 */
-    export const ROOM_ROW = 30
+    export const ROOM_ROW = 50
     /** 房间纵向跨度 */
-    export const ROOM_COL = 60
+    export const ROOM_COL = 50
     /** 房间预设高度 */
     export const PRESET_HEIGHT = 1000
     /** 房间预设宽度 */
@@ -198,8 +198,20 @@ export module game {
         const right_up_tile = game.map_data_ins.pixelToTile(right_up)
         right_up_tile.y -= 1
         const left_down_tile = game.map_data_ins.pixelToTile(left_down)
-        left_down_tile.y += 1
         const right_down_tile = game.map_data_ins.pixelToTile(right_down)
+        if (left_up_tile.y % 2 === 0) {
+            if(left_down_tile.y % 2 === 0) {
+                left_down_tile.addSelf(cc.v2(0,1))
+                right_down_tile.addSelf(cc.v2(1,0))
+            }
+        }
+        else {
+            if(left_down_tile.y % 2 !== 0) {
+                left_down_tile.addSelf(cc.v2(0,1))
+                right_down_tile.addSelf(cc.v2(1,0))
+            }
+        }
+        left_down_tile.y += 1
         right_down_tile.x += 1
 
         return [left_up_tile, right_up_tile, left_down_tile, right_down_tile]
@@ -295,4 +307,26 @@ export module game {
         return arr;
     }
 
+    export function getRoomIdByTile(tile: cc.Vec2) {
+        if(tile.x<0||tile.y<0)return -1
+        tile = tile.add(cc.v2(1,1))
+        let {x,y} = tile
+        let roomx = Math.ceil(x/game.ROOM_ROW)
+        let roomy = Math.ceil(y/game.ROOM_COL)
+        let roomxnum=Math.ceil(game.map_data_ins.row/game.ROOM_ROW)
+        let roomid = (roomy-1)*roomxnum+roomx
+        return roomid
+    }
+
+    export function getRoomRowCol(roomId:number){
+        let roomWidth = game.ROOM_ROW
+        let roomxnum=Math.ceil(game.map_data_ins.row/roomWidth)
+        let row = Math.ceil(roomId/roomxnum)
+        let col = roomId%roomxnum === 0?roomxnum:roomId%roomxnum
+        return cc.v2(row,col)
+    }
+
+    export function getRoomClockwiseVertices(){
+        
+    }
 }
