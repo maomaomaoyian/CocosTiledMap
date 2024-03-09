@@ -122,6 +122,7 @@ export class ViewData {
     private showDataPreview() {
         if (!game.DEV) return
         game.view_rect.drawRectPreview(this.previewVertices)
+        game.view_rect.drawRooms(this.previewVertices)
     }
 
     public clear() {

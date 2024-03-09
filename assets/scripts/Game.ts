@@ -1,4 +1,4 @@
-const {ccclass, property} = cc._decorator;
+const { ccclass, property } = cc._decorator;
 import { game } from "./UI/TiledMapUI/Manager";
 
 /**
@@ -10,6 +10,7 @@ import { game } from "./UI/TiledMapUI/Manager";
 @ccclass
 export default class Game extends cc.Component {
     protected onLoad(): void {
+        game.map_model.clear()
         this.loadRes("UI/TiledMapUI/TiledMapUI", cc.Prefab, (err: Error, res: cc.Prefab) => {
             if (!err) {
                 let ui = cc.instantiate(res) as cc.Node

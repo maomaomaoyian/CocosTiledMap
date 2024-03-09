@@ -35,8 +35,8 @@ export module game {
     /** 开发调试 */
     export const DEV = true
     export const PRINT = true
-    export const VIEW_REALTIME_CALC = true
-    export const VIEW_REALTIME_FILL: boolean = true
+    export const VIEW_REALTIME_CALC = false
+    export const VIEW_REALTIME_DRAW: boolean = false
     export const VIEW_UPDATE_PARTICAL = VIEW_PARTICAL.TILE
 
     /** 固定参数 */
@@ -260,9 +260,9 @@ export module game {
      * @param tile 
      * @returns 
      */
-    export function getRoomIdByTile(tile: cc.Vec2) {
+    export function getRoomIdByTile(tile: cc.Vec3) {
         if (tile.x < 0 || tile.y < 0) return -1
-        tile = tile.add(cc.v2(1, 1))
+        tile = tile.add(cc.v3(1, 1))
         let { x, y } = tile
         let roomx = Math.ceil(x / game.ROOM_ROW)
         let roomy = Math.ceil(y / game.ROOM_COL)
@@ -281,7 +281,7 @@ export module game {
         let roomxnum = Math.ceil(game.map_data.row / roomWidth)
         let row = Math.ceil(roomId / roomxnum)
         let col = roomId % roomxnum === 0 ? roomxnum : roomId % roomxnum
-        return cc.v2(row, col)
+        return cc.v3(row, col)
     }
 
     /**
@@ -297,6 +297,6 @@ export module game {
         let y = (rowcol.x - 1) * roomHeight
         let maxx = Math.min(map_data.row, x + roomWidth) - 1
         let maxy = Math.min(map_data.col, y + roomHeight) - 1
-        return [cc.v2(x, y), cc.v2(maxx, y), cc.v2(maxx, maxy), cc.v2(x, maxy)]
+        return [cc.v3(x, y), cc.v3(maxx, y), cc.v3(maxx, maxy), cc.v3(x, maxy)]
     }
 }

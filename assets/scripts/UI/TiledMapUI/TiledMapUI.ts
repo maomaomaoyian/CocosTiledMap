@@ -21,7 +21,6 @@ export default class TiledMapUI extends cc.Component {
 
     public onLoad(): void {
         game.map_model.$TiledMapUI = this
-        game.map_model.clear()
 
         this.n_tiledMap = cc.find("n_tiledMap", this.node)
         this.n_center = cc.find("n_center", this.n_tiledMap)
@@ -74,7 +73,8 @@ export default class TiledMapUI extends cc.Component {
     public updateTouchLab(pos: cc.Vec3) {
         if (!game.DEV) return
         let tile = game.map_data.pixelToTile(pos)
-        this.l_touch.string = `屏幕触摸位置：${tile.x}_${tile.y} (${pos.x},${pos.y})`
+        let roomId = game.getRoomIdByTile(tile)
+        this.l_touch.string = `屏幕触摸位置：${tile.x}_${tile.y} (${pos.x},${pos.y})房间号：${roomId}`
     }
 
     public updateCenterLab(pos: cc.Vec3) {

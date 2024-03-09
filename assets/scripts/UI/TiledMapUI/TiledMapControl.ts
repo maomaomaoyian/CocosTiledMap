@@ -59,6 +59,7 @@ export class TiledMapControl extends cc.Component {
             let tile = game.map_data.pixelToTile(clickPos)
             let tileCenter = game.map_data.tileToPixel(tile.x, tile.y)
             game.map_model.$TiledMapUI.updateTouchLab(tileCenter)
+            game.view_rect.drawClickRoom(tileCenter)
         }
         this.addEvent();
         this.onEnter()

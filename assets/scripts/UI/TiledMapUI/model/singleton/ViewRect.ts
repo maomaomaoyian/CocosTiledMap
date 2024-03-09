@@ -9,7 +9,7 @@ export class ViewRect {
         return this._instance;
     }
 
-    private rectFillRegister: Map<string, cc.Rect> = new Map()
+    private rectFillRegister: Map<string, cc.Graphics> = new Map()
 
     private get screenCenterMappingPos() {
         return game.map_model.$TiledMapControl.canvasCenterToMap()
@@ -39,14 +39,14 @@ export class ViewRect {
     }
 
     private drawArea(rect: cc.Rect, color: cc.Color, register: string) {
-        if (!game.VIEW_REALTIME_FILL) {
-            if (this.rectFillRegister.has(register)) return
-            this.rectFillRegister.set(register, rect)
-        }
         let graphics = this.getGraphics(register)
+        if (!game.VIEW_REALTIME_DRAW) {
+            if (this.rectFillRegister.has(register)) return
+            this.rectFillRegister.set(register, graphics)
+        }
         graphics.clear()
         graphics.strokeColor = color;
-        graphics.lineWidth = 50;
+        graphics.lineWidth = 20;
         graphics.rect(rect.xMin, rect.yMin, rect.width, rect.height);
         graphics.stroke();
     }
@@ -99,6 +99,49 @@ export class ViewRect {
         graphics.moveTo(vec1.x, vec1.y);
         graphics.lineTo(vec2.x, vec2.y);
         graphics.stroke();
+    }
+
+    public drawRooms(viewVertices: cc.Vec3[]) {
+        let register = "draw_diagonal"
+        let graphics = this.getGraphics(register)
+        if (!game.VIEW_REALTIME_DRAW) {
+            if (this.rectFillRegister.has(register)) return
+            this.rectFillRegister.set(register, graphics)
+        }
+        graphics.clear();
+        viewVertices.forEach(one => {
+            if (!game.isOutIndex(game.map_data.row, game.map_data.col, one.x, one.y)) {
+                let roomId = game.getRoomIdByTile(one)
+                this.drawRoom(roomId, graphics, cc.Color.ORANGE)
+            }
+        });
+    }
+
+    public drawRoom(roomId: number, graphics: cc.Graphics, color: cc.Color) {
+        let roomVertices = game.getRoomClockwiseVertices(roomId)
+        graphics.strokeColor = color;
+        graphics.lineWidth = 50;
+        let startPos = null
+        roomVertices.forEach(tile => {
+            let pos = game.map_data.tileToPixel(tile.x, tile.y)
+            if (!startPos) {
+                startPos = pos
+                graphics.moveTo(pos.x, pos.y)
+            }
+            else {
+                graphics.lineTo(pos.x, pos.y)
+            }
+        });
+        graphics.lineTo(startPos.x, startPos.y)
+        graphics.stroke();
+    }
+
+    public drawClickRoom(pos: cc.Vec3) {
+        let tile = game.map_data.pixelToTile(pos)
+        let roomId = game.getRoomIdByTile(tile)
+        let graphics = this.getGraphics("draw_test")
+        graphics.clear()
+        this.drawRoom(roomId, graphics, cc.Color.GRAY)
     }
 
     public clear() {
