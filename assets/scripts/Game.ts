@@ -326,7 +326,14 @@ export module game {
         return cc.v2(row,col)
     }
 
-    export function getRoomClockwiseVertices(){
-        
+    export function getRoomClockwiseVertices(roomId:number){
+        let roomWidth = game.ROOM_ROW
+        let roomHeight = game.ROOM_COL
+        let rowcol = game.getRoomRowCol(roomId)
+        let x= (rowcol.y-1)*roomWidth
+        let y= (rowcol.x-1)*roomHeight
+        let maxx= Math.min(map_data_ins.row,x+roomWidth)-1
+        let maxy= Math.min(map_data_ins.col,y+roomHeight)-1
+        return [cc.v2(x,y),cc.v2(maxx,y),cc.v2(maxx,maxy),cc.v2(x,maxy)]
     }
 }
