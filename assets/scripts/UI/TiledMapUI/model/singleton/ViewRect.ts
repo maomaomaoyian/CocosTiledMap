@@ -102,7 +102,7 @@ export class ViewRect {
     }
 
     public drawRooms(viewVertices: cc.Vec3[]) {
-        let register = "draw_diagonal"
+        let register = "draw_rooms"
         let graphics = this.getGraphics(register)
         if (!game.VIEW_REALTIME_DRAW) {
             if (this.rectFillRegister.has(register)) return

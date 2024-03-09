@@ -84,7 +84,7 @@ export class ViewData {
         game.view_grid.justShowView(Array.from(this.viewDeleteTiles.values()))
         game.view_grid.showView(Array.from(this.viewAdditionTiles.values()))
         game.view_rect.drawRectScreen()
-        game.view_rect.drawDiagonalLines(this.viewVertices, cc.Color.YELLOW)
+        game.view_rect.drawDiagonalLines(this.viewVertices, cc.Color.GREEN)
     }
 
 
