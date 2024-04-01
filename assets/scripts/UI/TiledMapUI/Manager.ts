@@ -620,4 +620,52 @@ export module game {
         dy = point.y - p.y;
         return Math.sqrt(dx * dx + dy * dy);
     }
+
+    public static bool isLineIntersectRectangle(float linePointX1,
+                                      float linePointY1,
+                                    float linePointX2,
+                                     float linePointY2,
+                                     float rectangleLeftTopX,
+                                      float rectangleLeftTopY,
+                                      float rectangleRightBottomX,
+                                      float rectangleRightBottomY)
+    {
+        float lineHeight = linePointY1 - linePointY2;
+        float lineWidth = linePointX2 - linePointX1;  // 计算叉乘 
+        float c = linePointX1 * linePointY2 - linePointX2 * linePointY1;
+        if ((lineHeight * rectangleLeftTopX + lineWidth * rectangleLeftTopY + c >= 0 && lineHeight * rectangleRightBottomX + lineWidth * rectangleRightBottomY + c <= 0)
+            || (lineHeight * rectangleLeftTopX + lineWidth * rectangleLeftTopY + c <= 0 && lineHeight * rectangleRightBottomX + lineWidth * rectangleRightBottomY + c >= 0)
+            || (lineHeight * rectangleLeftTopX + lineWidth * rectangleRightBottomY + c >= 0 && lineHeight * rectangleRightBottomX + lineWidth * rectangleLeftTopY + c <= 0)
+            || (lineHeight * rectangleLeftTopX + lineWidth * rectangleRightBottomY + c <= 0 && lineHeight * rectangleRightBottomX + lineWidth * rectangleLeftTopY + c >= 0))
+        {
+ 
+            if (rectangleLeftTopX > rectangleRightBottomX)
+            {
+                float temp = rectangleLeftTopX;
+                rectangleLeftTopX = rectangleRightBottomX;
+                rectangleRightBottomX = temp;
+            }
+            if (rectangleLeftTopY < rectangleRightBottomY)
+            {
+                float temp1 = rectangleLeftTopY;
+                rectangleLeftTopY = rectangleRightBottomY;
+                rectangleRightBottomY = temp1;
+            }
+            if ((linePointX1 < rectangleLeftTopX && linePointX2 < rectangleLeftTopX)
+                || (linePointX1 > rectangleRightBottomX && linePointX2 > rectangleRightBottomX)
+                || (linePointY1 > rectangleLeftTopY && linePointY2 > rectangleLeftTopY)
+                || (linePointY1 < rectangleRightBottomY && linePointY2 < rectangleRightBottomY))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
 }
