@@ -299,4 +299,325 @@ export module game {
         let maxy = Math.min(map_data.col, y + roomHeight) - 1
         return [cc.v3(x, y), cc.v3(maxx, y), cc.v3(maxx, maxy), cc.v3(x, maxy)]
     }
+    
+    /**
+     * !#en Test line and line
+     * !#zh 测试线段与线段是否相交
+     * @method lineLine
+     * @param {Vec2} a1 - The start point of the first line
+     * @param {Vec2} a2 - The end point of the first line
+     * @param {Vec2} b1 - The start point of the second line
+     * @param {Vec2} b2 - The end point of the second line
+     * @return {boolean}
+     */
+    function lineLine(a1, a2, b1, b2) {
+        // b1->b2向量 与 a1->b1向量的向量积
+        var ua_t = (b2.x - b1.x) * (a1.y - b1.y) - (b2.y - b1.y) * (a1.x - b1.x);
+        // a1->a2向量 与 a1->b1向量的向量积
+        var ub_t = (a2.x - a1.x) * (a1.y - b1.y) - (a2.y - a1.y) * (a1.x - b1.x);
+        // a1->a2向量 与 b1->b2向量的向量积
+        var u_b = (b2.y - b1.y) * (a2.x - a1.x) - (b2.x - b1.x) * (a2.y - a1.y);
+        // u_b == 0时，角度为0或者180 平行或者共线不属于相交
+        if (u_b !== 0) {
+            var ua = ua_t / u_b;
+            var ub = ub_t / u_b;
+
+            if (0 <= ua && ua <= 1 && 0 <= ub && ub <= 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * !#en Test line and rect
+     * !#zh 测试线段与矩形是否相交
+     * @method lineRect
+     * @param {Vec2} a1 - The start point of the line
+     * @param {Vec2} a2 - The end point of the line
+     * @param {Rect} b - The rect
+     * @return {boolean}
+     */
+    function lineRect(a1, a2, b) {
+        var r0 = new cc.Vec2(b.x, b.y);
+        var r1 = new cc.Vec2(b.x, b.yMax);
+        var r2 = new cc.Vec2(b.xMax, b.yMax);
+        var r3 = new cc.Vec2(b.xMax, b.y);
+
+        if (lineLine(a1, a2, r0, r1))
+            return true;
+        if (lineLine(a1, a2, r1, r2))
+            return true;
+        if (lineLine(a1, a2, r2, r3))
+            return true;
+        if (lineLine(a1, a2, r3, r0))
+            return true;
+        return false;
+    }
+
+    /**
+     * !#en Test line and polygon
+     * !#zh 测试线段与多边形是否相交
+     * @method linePolygon
+     * @param {Vec2} a1 - The start point of the line
+     * @param {Vec2} a2 - The end point of the line
+     * @param {Vec2[]} b - The polygon, a set of points
+     * @return {boolean}
+     */
+    function linePolygon(a1, a2, b) {
+        var length = b.length;
+
+        for (var i = 0; i < length; ++i) {
+            var b1 = b[i];
+            var b2 = b[(i + 1) % length];
+
+            if (lineLine(a1, a2, b1, b2))
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * !#en Test rect and rect
+     * !#zh 测试矩形与矩形是否相交
+     * @method rectRect
+     * @param {Rect} a - The first rect
+     * @param {Rect} b - The second rect
+     * @return {boolean}
+     */
+    function rectRect(a, b) {
+        // jshint camelcase:false
+
+        var a_min_x = a.x;
+        var a_min_y = a.y;
+        var a_max_x = a.x + a.width;
+        var a_max_y = a.y + a.height;
+
+        var b_min_x = b.x;
+        var b_min_y = b.y;
+        var b_max_x = b.x + b.width;
+        var b_max_y = b.y + b.height;
+
+        return a_min_x <= b_max_x &&
+            a_max_x >= b_min_x &&
+            a_min_y <= b_max_y &&
+            a_max_y >= b_min_y
+            ;
+    }
+
+    /**
+     * !#en Test rect and polygon
+     * !#zh 测试矩形与多边形是否相交
+     * @method rectPolygon
+     * @param {Rect} a - The rect
+     * @param {Vec2[]} b - The polygon, a set of points
+     * @return {boolean}
+     */
+    function rectPolygon(a, b) {
+        var i, l;
+        var r0 = new cc.Vec2(a.x, a.y);
+        var r1 = new cc.Vec2(a.x, a.yMax);
+        var r2 = new cc.Vec2(a.xMax, a.yMax);
+        var r3 = new cc.Vec2(a.xMax, a.y);
+
+        // 矩形的每条边与多边形是否相交
+        if (linePolygon(r0, r1, b))
+            return true;
+
+        if (linePolygon(r1, r2, b))
+            return true;
+
+        if (linePolygon(r2, r3, b))
+            return true;
+
+        if (linePolygon(r3, r0, b))
+            return true;
+
+        // 走到这可以检测出两个图形无交点
+        // 检测是否矩形包含多边形，如果多边形上存在一个点在矩形内，则相交
+        for (i = 0, l = b.length; i < l; ++i) {
+            if (pointInPolygon(b[i], a))
+                return true;
+        }
+
+        // 检测是否多边形包含矩形，如果矩形上存在一个点在多边形内，则相交
+        if (pointInPolygon(r0, b))
+            return true;
+
+        if (pointInPolygon(r1, b))
+            return true;
+
+        if (pointInPolygon(r2, b))
+            return true;
+
+        if (pointInPolygon(r3, b))
+            return true;
+
+        return false;
+    }
+
+    /**
+     * !#en Test polygon and polygon
+     * !#zh 测试多边形与多边形是否相交
+     * @method polygonPolygon
+     * @param {Vec2[]} a - The first polygon, a set of points
+     * @param {Vec2[]} b - The second polygon, a set of points
+     * @return {boolean}
+     */
+    function polygonPolygon(a, b) {
+        var i, l;
+
+        // a的每条边与b的每条边做相交检测
+        for (i = 0, l = a.length; i < l; ++i) {
+            var a1 = a[i];
+            var a2 = a[(i + 1) % l];
+
+            if (linePolygon(a1, a2, b))
+                return true;
+        }
+
+        // 判断两个多边形的包含关系
+        for (i = 0, l = b.length; i < l; ++i) {
+            if (pointInPolygon(b[i], a))
+                return true;
+        }
+
+        // 判断两个多边形的包含关系
+        for (i = 0, l = a.length; i < l; ++i) {
+            if (pointInPolygon(a[i], b))
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * !#en Test circle and circle
+     * !#zh 测试圆形与圆形是否相交
+     * @method circleCircle
+     * @param {Object} a - Object contains position and radius
+     * @param {Object} b - Object contains position and radius
+     * @return {boolean}
+     * @typescript circleCircle(a: {position: Vec2, radius: number}, b: {position: Vec2, radius: number}): boolean
+     */
+    function circleCircle(a, b) {
+        var distance = a.position.sub(b.position).mag(); // 这里用到了内部方法,写在下面了，就是在求a与b之间的距离
+        // let sub = function (vector, out) {
+        // 向量减法，并返回新结果。因为引擎是3d的所以是Vec3，大家可以直接用Vec2
+        // out = out || new Vec3();
+        // out.x = this.x - vector.x;
+        // out.y = this.y - vector.y;
+        // out.z = this.z - vector.z;
+        // return out;
+        //};
+        // mag() {
+        // 返回一个距离
+        //  return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+        //}
+        // function Vec2(x, y) {
+        //    this.x = x;
+        //    this.y = y;
+        // }
+
+        return distance < (a.radius + b.radius);
+    }
+
+    /**
+     * !#en Test polygon and circle
+     * !#zh 多边形与圆形是否相交
+     * @method polygonCircle
+     * @param {Vec2[]} polygon - The Polygon, a set of points
+     * @param {Object} circle - Object contains position and radius
+     * @return {boolean}
+     * @typescript polygonCircle(polygon: Vec2[], circle: {position: Vec2, radius: number}): boolean
+     */
+    function polygonCircle(polygon, circle) {
+        //先判断圆心有没有在多边形内，如果在，一定相交
+        var position = circle.position;
+        if (pointInPolygon(position, polygon)) {
+            return true;
+        }
+        // 否则遍历多边形的每一条边，如果圆形到边的距离小于圆的半径，则相交
+        // 为什么不用点到圆心的距离？我也不清楚。。。望大佬解答
+        for (var i = 0, l = polygon.length; i < l; i++) {
+            var start = i === 0 ? polygon[polygon.length - 1] : polygon[i - 1];
+            var end = polygon[i];
+
+            if (pointLineDistance(position, start, end, true) < circle.radius) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * !#en Test whether the point is in the polygon
+     * !#zh 测试一个点是否在一个多边形中
+     * @method pointInPolygon
+     * @param {Vec2} point - The point
+     * @param {Vec2[]} polygon - The polygon, a set of points
+     * @return {boolean}
+     */
+    function pointInPolygon(point, polygon) {
+        //* 射线法判断点是否在多边形内
+        //* 点射线（向右水平）与多边形相交点的个数为奇数则认为该点在多边形内
+        //* 点射线（向右水平）与多边形相交点的个数为偶数则认为该点不在多边形内
+        var inside = false;
+        var x = point.x;
+        var y = point.y;
+
+        // use some raycasting to test hits
+        // https://github.com/substack/point-in-polygon/blob/master/index.js
+        var length = polygon.length;
+
+        for (var i = 0, j = length - 1; i < length; j = i++) {
+            var xi = polygon[i].x, yi = polygon[i].y,
+                xj = polygon[j].x, yj = polygon[j].y,
+                intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            // (yi > y) !== (yj > y)表示此条边的两个端点的y值一个大于这个点的y一个小于这个点的y
+            //  (x < (xj - xi) * (y - yi) / (yj - yi) + xi) 这个看起来像是求投影呢，还没搞明白
+            if (intersect) inside = !inside;
+        }
+
+        return inside;
+    }
+
+    /**
+     * !#en Calculate the distance of point to line.
+     * !#zh 计算点到直线的距离。如果这是一条线段并且垂足不在线段内，则会计算点到线段端点的距离。
+     * @method pointLineDistance
+     * @param {Vec2} point - The point
+     * @param {Vec2} start - The start point of line
+     * @param {Vec2} end - The end point of line
+     * @param {boolean} isSegment - whether this line is a segment
+     * @return {number}
+     */
+    function pointLineDistance(point, start, end, isSegment) {
+        var dx = end.x - start.x;
+        var dy = end.y - start.y;
+        var d = dx * dx + dy * dy;
+        var t = ((point.x - start.x) * dx + (point.y - start.y) * dy) / d;
+        var p;
+
+        if (!isSegment) {
+            p = cc.v2(start.x + t * dx, start.y + t * dy);
+        }
+        else {
+            if (d) {
+                if (t < 0) p = start;
+                else if (t > 1) p = end;
+                else p = cc.v2(start.x + t * dx, start.y + t * dy);
+            }
+            else {
+                p = start;
+            }
+        }
+
+        dx = point.x - p.x;
+        dy = point.y - p.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 }
