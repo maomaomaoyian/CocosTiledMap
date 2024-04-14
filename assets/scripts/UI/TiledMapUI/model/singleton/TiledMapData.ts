@@ -56,7 +56,7 @@ export class TiledMapData {
      */
     public findPath(sX: number, sY: number, eX: number, eY: number): [number, number][] {
         let t0 = cc.sys.now();
-        let astar = new game.road_astar(this.row, this.col, false);
+        let astar = new game.util_astar(this.row, this.col, false);
         let path = astar.findPath(sX, sY, eX, eY, this.barrier);
         game.PRINT && console.info("耗时（ms）：", cc.sys.now() - t0);
         game.view_rect.drawPath(path);
@@ -70,7 +70,7 @@ export class TiledMapData {
         for (let x = 0; x < this.row; x++) {
             for (let y = 0; y < this.col; y++) {
                 let isBarrier = this.isBarrier(x, y);
-                isBarrier && this.barrier.add(game.tileToGID(this.row, this.col, x, y));
+                isBarrier && this.barrier.add(game.util_map.tileToGID(this.row, this.col, x, y));
             }
         }
         game.PRINT && console.log("障碍录入完毕")
@@ -83,7 +83,7 @@ export class TiledMapData {
      * @returns 
      */
     private isBarrier(tiledX: number, tiledY: number): boolean {
-        let gid = game.tileToGID(this.row, this.col, tiledX, tiledY);
+        let gid = game.util_map.tileToGID(this.row, this.col, tiledX, tiledY);
         if (
             this.tiledmap.getLayer(game.Layer.BARRIER) &&
             this.tiledmap.getLayer(game.Layer.BARRIER).getTiles()[gid] > 0

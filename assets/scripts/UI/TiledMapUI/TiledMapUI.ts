@@ -73,7 +73,7 @@ export default class TiledMapUI extends cc.Component {
     public updateTouchLab(pos: cc.Vec3) {
         if (!game.DEV) return
         let tile = game.map_data.pixelToTile(pos)
-        let roomId = game.getRoomIdByTile(tile)
+        let roomId = game.util_map.getRoomIdByTile(tile)
         this.l_touch.string = `屏幕触摸位置：${tile.x}_${tile.y} (${pos.x},${pos.y})房间号：${roomId}`
     }
 

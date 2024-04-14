@@ -131,7 +131,7 @@ export class AStar {
     }
 
     private getGID(ele: game.road_apoint) {
-        return game.tileToGID(this.row, this.col, ele.getX(), ele.getY())
+        return game.util_map.tileToGID(this.row, this.col, ele.getX(), ele.getY())
     }
 
     private isBarrier(ele: game.road_apoint): boolean {
@@ -141,7 +141,7 @@ export class AStar {
     }
 
     private isOutIndex(ele: game.road_apoint): boolean {
-        return game.isOutIndex(this.row, this.col, ele.getX(), ele.getY())
+        return game.util_map.isOutIndex(this.row, this.col, ele.getX(), ele.getY())
     }
 
     private calcH(cur: game.road_apoint, end: game.road_apoint): number {

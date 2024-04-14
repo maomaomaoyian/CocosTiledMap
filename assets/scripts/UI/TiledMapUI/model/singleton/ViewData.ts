@@ -56,15 +56,15 @@ export class ViewData {
     }
 
     private recordView() {
-        let vertices = game.getSquareVertices(this.screenCenterMappingPos, game.VIEW)
+        let vertices = game.util_map.getSquareVertices(this.screenCenterMappingPos, game.VIEW)
         this.viewVertices = vertices
-        let viewData = game.getSquareView(vertices)
+        let viewData = game.util_map.getSquareView(vertices)
         let lastViewData: Map<number, cc.Vec3> = this.viewMapData || new Map()
         let nextViewData: Map<number, cc.Vec3> = new Map()
         this.viewMapData = new Map()
         for (let index = 0; index < viewData.length; index++) {
             const tile = viewData[index];
-            let gid = game.tileToGID(game.map_data.row, game.map_data.col, tile.x, tile.y)
+            let gid = game.util_map.tileToGID(game.map_data.row, game.map_data.col, tile.x, tile.y)
             this.viewMapData.set(gid, tile)
             if (lastViewData.has(gid)) {
                 lastViewData.delete(gid)
@@ -75,7 +75,7 @@ export class ViewData {
         }
         this.viewDeleteTiles = lastViewData
         this.viewAdditionTiles = nextViewData
-        const mergedMap = game.mergeMaps(lastViewData, nextViewData);
+        const mergedMap = game.util_map.mergeMaps(lastViewData, nextViewData);
         this.viewChangeTiles = mergedMap
     }
 
@@ -115,7 +115,7 @@ export class ViewData {
     }
 
     private recordPreview() {
-        let vertices = game.getSquareVertices(this.screenCenterMappingPos, game.preview())
+        let vertices = game.util_map.getSquareVertices(this.screenCenterMappingPos, game.util_map.preview())
         this.previewVertices = vertices
     }
 

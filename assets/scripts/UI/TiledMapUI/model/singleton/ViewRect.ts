@@ -32,8 +32,8 @@ export class ViewRect {
     public drawRectPreview(previewVertices: cc.Vec3[]) {
         let left_down_tile = previewVertices[2]
         let rectPreviewPos = game.map_data.tileToPixel(left_down_tile.x, left_down_tile.y)
-        let rectPreviewWidth = game.calcTowVerticesDis(previewVertices[0], previewVertices[1])
-        let rectPreviewHieght = game.calcTowVerticesDis(previewVertices[0], previewVertices[2])
+        let rectPreviewWidth = game.util_map.calcTowVerticesDis(previewVertices[0], previewVertices[1])
+        let rectPreviewHieght = game.util_map.calcTowVerticesDis(previewVertices[0], previewVertices[2])
         let rectPreview = new cc.Rect(rectPreviewPos.x, rectPreviewPos.y, rectPreviewWidth, rectPreviewHieght)
         this.drawArea(rectPreview, cc.Color.RED, "draw_preview")
     }
@@ -110,15 +110,15 @@ export class ViewRect {
         }
         graphics.clear();
         viewVertices.forEach(one => {
-            if (!game.isOutIndex(game.map_data.row, game.map_data.col, one.x, one.y)) {
-                let roomId = game.getRoomIdByTile(one)
+            if (!game.util_map.isOutIndex(game.map_data.row, game.map_data.col, one.x, one.y)) {
+                let roomId = game.util_map.getRoomIdByTile(one)
                 this.drawRoom(roomId, graphics, cc.Color.ORANGE)
             }
         });
     }
 
     public drawRoom(roomId: number, graphics: cc.Graphics, color: cc.Color) {
-        let roomVertices = game.getRoomClockwiseVertices(roomId)
+        let roomVertices = game.util_map.getRoomClockwiseVertices(roomId)
         graphics.strokeColor = color;
         graphics.lineWidth = 50;
         let startPos = null
@@ -138,7 +138,7 @@ export class ViewRect {
 
     public drawClickRoom(pos: cc.Vec3) {
         let tile = game.map_data.pixelToTile(pos)
-        let roomId = game.getRoomIdByTile(tile)
+        let roomId = game.util_map.getRoomIdByTile(tile)
         let graphics = this.getGraphics("draw_test")
         graphics.clear()
         this.drawRoom(roomId, graphics, cc.Color.GRAY)
