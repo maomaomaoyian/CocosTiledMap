@@ -106,20 +106,8 @@ export class MapUtil {
         const right_up_tile = game.map_data.pixelToTile(right_up)
         right_up_tile.y -= 1
         const left_down_tile = game.map_data.pixelToTile(left_down)
-        const right_down_tile = game.map_data.pixelToTile(right_down)
-        if (left_up_tile.y % 2 === 0) {
-            if (left_down_tile.y % 2 === 0) {
-                left_down_tile.addSelf(cc.v3(0, 1))
-                right_down_tile.addSelf(cc.v3(1, 0))
-            }
-        }
-        else {
-            if (left_down_tile.y % 2 !== 0) {
-                left_down_tile.addSelf(cc.v3(0, 1))
-                right_down_tile.addSelf(cc.v3(1, 0))
-            }
-        }
         left_down_tile.y += 1
+        const right_down_tile = game.map_data.pixelToTile(right_down)
         right_down_tile.x += 1
 
         return [left_up_tile, right_up_tile, left_down_tile, right_down_tile]

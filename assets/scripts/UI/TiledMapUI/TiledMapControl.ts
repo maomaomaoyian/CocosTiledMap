@@ -75,8 +75,6 @@ export class TiledMapControl extends cc.Component {
 
     private onEnter() {
         this.setHomePos()
-        game.view_data.calcViewData()
-        game.view_data.calcPreviewData()
     }
 
     private setHomePos() {
@@ -132,7 +130,7 @@ export class TiledMapControl extends cc.Component {
             }
         }
 
-        game.view_data.calcViewData()
+        game.view_data.calcViewData(game.VIEW_UPDATE_PARTICAL)
     }
 
     private onTouchStart(event: cc.Event.EventTouch) {
@@ -208,7 +206,7 @@ export class TiledMapControl extends cc.Component {
 
             this.reset();
 
-            game.view_data.calcPreviewData()
+            game.view_data.calcPreviewData(game.VIEW_UPDATE_PARTICAL)
         }
     }
 

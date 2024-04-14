@@ -25,27 +25,29 @@ export class ViewData {
     }
 
     /** --- 真实视野 --- */
-    public calcViewData() {
+    public calcViewData(type: game.VIEW_PARTICAL) {
         let isValid = game.map_model.isValidOperation()
         if (!isValid) return
         const canvasCenterPos = this.screenCenterMappingPos
-        if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
-            let tile = game.map_data.pixelToTile(canvasCenterPos)
-            if (!this.viewLastCenterTile || !this.viewLastCenterTile.equals(tile)) {
-                this.viewLastCenterTile = tile
-                let tileCenter = game.map_data.tileToPixel(tile.x, tile.y)
-                this.calcSquareView()
-                game.map_model.$TiledMapUI.updateCenterLab(tileCenter)
-            }
-        }
-        else if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.PIXEL) {
-            if (!this.viewLastCenterPos || !this.viewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
-                this.viewLastCenterPos = canvasCenterPos
+        switch (type) {
+            case game.VIEW_PARTICAL.TILE:
                 let tile = game.map_data.pixelToTile(canvasCenterPos)
-                let tileCenter = game.map_data.tileToPixel(tile.x, tile.y)
-                this.calcSquareView()
-                game.map_model.$TiledMapUI.updateCenterLab(tileCenter)
-            }
+                if (!this.viewLastCenterTile || !this.viewLastCenterTile.equals(tile)) {
+                    this.viewLastCenterTile = tile
+                    let tileCenter = game.map_data.tileToPixel(tile.x, tile.y)
+                    this.calcSquareView()
+                    game.map_model.$TiledMapUI.updateCenterLab(tileCenter)
+                }
+                break;
+            case game.VIEW_PARTICAL.PIXEL:
+                if (!this.viewLastCenterPos || !this.viewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
+                    this.viewLastCenterPos = canvasCenterPos
+                    let tile = game.map_data.pixelToTile(canvasCenterPos)
+                    let tileCenter = game.map_data.tileToPixel(tile.x, tile.y)
+                    this.calcSquareView()
+                    game.map_model.$TiledMapUI.updateCenterLab(tileCenter)
+                }
+                break;
         }
     }
 
@@ -84,27 +86,28 @@ export class ViewData {
         game.view_grid.justShowView(Array.from(this.viewDeleteTiles.values()))
         game.view_grid.showView(Array.from(this.viewAdditionTiles.values()))
         game.view_rect.drawRectScreen()
-        game.view_rect.drawDiagonalLines(this.viewVertices, cc.Color.GREEN)
     }
 
 
     /** --- 预处理视野 --- */
-    public calcPreviewData() {
+    public calcPreviewData(type: game.VIEW_PARTICAL) {
         let isValid = game.map_model.isValidOperation()
         if (!isValid) return
         const canvasCenterPos = this.screenCenterMappingPos
-        if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.TILE) {
-            let tile = game.map_data.pixelToTile(canvasCenterPos)
-            if (!this.previewLastCenterTile || !this.previewLastCenterTile.equals(tile)) {
-                this.previewLastCenterTile = tile
-                this.calcSquarePreview()
-            }
-        }
-        else if (game.VIEW_UPDATE_PARTICAL === game.VIEW_PARTICAL.PIXEL) {
-            if (!this.previewLastCenterPos || !this.previewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
-                this.previewLastCenterPos = canvasCenterPos
-                this.calcSquarePreview()
-            }
+        switch (type) {
+            case game.VIEW_PARTICAL.TILE:
+                let tile = game.map_data.pixelToTile(canvasCenterPos)
+                if (!this.previewLastCenterTile || !this.previewLastCenterTile.equals(tile)) {
+                    this.previewLastCenterTile = tile
+                    this.calcSquarePreview()
+                }
+                break;
+            case game.VIEW_PARTICAL.PIXEL:
+                if (!this.previewLastCenterPos || !this.previewLastCenterPos.fuzzyEquals(canvasCenterPos, 5)) {
+                    this.previewLastCenterPos = canvasCenterPos
+                    this.calcSquarePreview()
+                }
+                break;
         }
     }
 

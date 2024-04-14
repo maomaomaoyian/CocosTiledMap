@@ -45,9 +45,9 @@ export module game {
 
     export const DEV = true
     export const PRINT = true
-    export const VIEW_REALTIME_CALC = false
+    export const VIEW_REALTIME_CALC = true
     export const VIEW_REALTIME_DRAW: boolean = false
-    export const VIEW_UPDATE_PARTICAL = VIEW_PARTICAL.TILE
+    export const VIEW_UPDATE_PARTICAL = VIEW_PARTICAL.PIXEL
 
 
     export const VIEW = cc.winSize
